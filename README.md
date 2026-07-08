@@ -135,30 +135,28 @@ All pricing is Azure Premium, EU North, pay-as-you-go (list prices). Each compon
 
 ### Component Breakdown
 
-| Component | Min | Typical | Max | What drives the range |
-|-----------|-----|---------|-----|----------------------|
-| **Lakeflow Jobs** | **$5** | **$45** | **$376** | Number of reports × frequency × query complexity |
-| | 12 reports, weekly, 3 min each | 24 reports, mixed schedule, 5 min each | 50 reports, daily, 10 min each | |
-| | `48 runs × 3 min ÷ 60 × 4 DBU × $0.47` | `286 runs × 5 min ÷ 60 × 4 DBU × $0.47` | `1200 runs × 10 min ÷ 60 × 4 DBU × $0.47` | |
-| **Dashboard Subscriptions** | **$2** | **$6** | **$85** | Shared warehouse window vs separate wake-ups |
-| | 5 dashboards, back-to-back with Jobs (no extra idle) | 10 dashboards, mostly back-to-back | 20 dashboards, scattered schedules (5 min idle each) | |
-| | `40 runs × 1 min ÷ 60 × 4 DBU × $0.91` | `100 runs × 1 min ÷ 60 × 4 DBU × $0.91` | `200 runs × 7 min ÷ 60 × 4 DBU × $0.91` | |
-| **Dashboard Interactive** | **$3** | **$31** | **$641** | User count × viewing pattern × auto-stop timer |
-| | 5 users, morning only, 1-min auto-stop | 15 users, 4 clusters/day, 5-min auto-stop | 50 users, continuous 8 hr/day | |
-| | `1 wake-up/day × 22 days × 2 min ÷ 60 × 4 DBU × $0.91` | `(1.1 hr query + 7.3 hr idle) × 4 DBU × $0.91` | `176 hr × 4 DBU × $0.91` | |
-| **Recipient Manager App** | **$0** | **$2** | **$360** | Scale-to-zero (default) vs always-on |
-| | Scales to zero — $0 when nobody is using it | 5x/week × 10 min = 3.3 hr active | Always-on 24/7 (no reason to do this) | |
-| | `0 hr × 0.5 DBU × $1.00` | `3.3 hr × 0.5 DBU × $1.00` | `720 hr × 0.5 DBU × $1.00` | |
-| **Storage** | **$0** | **$0** | **$0** | Config tables + audit log < 100 MB — negligible |
-| **TOTAL** | **~$10** | **~$84** | **~$1,462** | |
+Each row shows a realistic range — from light usage to heavy production usage.
 
-### Realistic Scenarios
+| Component | Light | Medium | Heavy | Formula |
+|-----------|-------|--------|-------|---------|
+| **Lakeflow Jobs** | **$5** | **$45** | **$188** | `runs/month × min/run ÷ 60 × 4 DBU/hr × $0.47` |
+| | 12 reports, weekly, 3 min | 24 reports, mixed, 5 min | 50 reports, daily, 5 min | No idle tail — pay only for runtime |
+| **Dashboard Subscriptions** | **$2** | **$6** | **$25** | `runs/month × (refresh + idle) ÷ 60 × 4 DBU/hr × $0.91` |
+| | 5 dashboards, shared WH window | 10 dashboards, mostly shared | 20 dashboards, some scattered | Shared = no idle tail. Scattered = 5 min idle each |
+| **Dashboard Interactive** | **$3** | **$31** | **$120** | `(query hours + idle hours) × 4 DBU/hr × $0.91` |
+| | 5 users, morning only, 1-min auto-stop | 15 users, 4 clusters/day, 5-min auto-stop | 50 users, 8 clusters/day, 5-min auto-stop | Idle tail per wake-up is the main cost driver |
+| **Recipient Manager App** | **$0** | **$2** | **$5** | `active hours × 0.5 DBU/hr × $1.00` |
+| | Scales to zero — $0 when idle | 5x/week × 10 min | Daily use, 20 min | Scale-to-zero is the default — cost is negligible |
+| **Storage** | **$0** | **$0** | **$0** | Config tables + audit log < 100 MB |
+| **TOTAL** | **~$10** | **~$84** | **~$338** | |
 
-| Scenario | Description | Monthly Cost |
-|----------|-------------|-------------|
-| **Small** | 12 reports, weekly, 5 users, scale-to-zero app | **$10 - $25** |
-| **Medium** | 24 reports, mixed schedule, 15 users | **$50 - $100** |
-| **Large** | 50 reports, daily, 50 users, embedded portal | **$200 - $500** |
+### Scenario Summary
+
+| Scenario | Reports | Recipients | Users | Monthly Cost |
+|----------|---------|-----------|-------|-------------|
+| **Light** | 12, weekly | 20 | 5 | **$10 - $25** |
+| **Medium** | 24, mixed schedule | 50 | 15 | **$50 - $100** |
+| **Heavy** | 50, daily | 100+ | 50 | **$200 - $340** |
 
 ### With Optimizations
 
@@ -176,9 +174,9 @@ All pricing is Azure Premium, EU North, pay-as-you-go (list prices). Each compon
 | User licenses | $1,250-2,500/month | **$0** (no per-seat fees) |
 | Server infrastructure | $500-2,000/month | **Included** in serverless DBU rate |
 | Admin / developer | $500-1,000/month | **Self-service** — config table + app |
-| **Monthly total** | **$2,250-5,500** | **$10-500** (depending on scale) |
-| **Annual total** | **$27,000-66,000** | **$120-6,000** |
-| **Savings** | — | **90-99%** |
+| **Monthly total** | **$2,250-5,500** | **$10-340** |
+| **Annual total** | **$27,000-66,000** | **$120-4,100** |
+| **Savings** | — | **94-99%** |
 
 Adding more recipients costs $0 — the Job runs one query per filter combination, not per email. SAP BO 4.3 reaches end of maintenance December 2026.
 

@@ -124,9 +124,11 @@ Storage is negligible regardless of usage pattern. Even with 100K audit log entr
 | **Lakeflow Jobs** | Jobs ($0.47) | **$5** | **$45** | **$376** | Number of reports × frequency × complexity |
 | **Subscriptions** | SQL ($0.91) | **$2** | **$6** | **$85** | Shared vs scattered scheduling |
 | **Interactive views** | SQL ($0.91) | **$3** | **$31** | **$641** | User count × usage pattern × auto-stop setting |
-| **Recipient Manager** | Apps ($1.00) | **$0.33** | **$2** | **$360** | Scale-to-zero vs always-on |
+| **Recipient Manager** | Apps ($1.00) | **$0** | **$2** | **$5** | Scale-to-zero (default) — cost is negligible |
 | **Storage** | — | **$0** | **$0** | **$0** | Negligible |
-| **TOTAL** | | **~$10** | **~$84** | **~$1,462** | |
+| **TOTAL** | | **~$10** | **~$84** | **~$338** | |
+
+Note: the "Max" column reflects realistic heavy production usage (50 reports daily, 50 active users). Theoretical maximum (e.g., always-on app 24/7, warehouse running continuously) would be higher but is not a realistic deployment pattern.
 
 ### With optimizations applied
 
@@ -145,9 +147,9 @@ The min and max above include extreme scenarios (always-on app, 50 continuous us
 
 | Scenario | Description | Monthly Cost |
 |----------|-------------|-------------|
-| **Small** | 12 reports, weekly, 5 users, scale-to-zero | **$10 - $25** |
+| **Light** | 12 reports, weekly, 5 users, scale-to-zero | **$10 - $25** |
 | **Medium** | 24 reports, mixed schedule, 15 users | **$50 - $100** |
-| **Large** | 50 reports, daily, 50 users, interactive portal | **$200 - $500** |
+| **Heavy** | 50 reports, daily, 50 users, interactive portal | **$200 - $340** |
 
 With a Databricks commit: multiply by 0.6.
 
