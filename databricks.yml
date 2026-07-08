@@ -1,5 +1,5 @@
 bundle:
-  name: intrum-bo-demo
+  name: bo-demo
 
 workspace:
   host: ${var.workspace_host}
@@ -12,7 +12,7 @@ variables:
     default: my_catalog
   schema:
     description: Schema name for demo tables
-    default: intrum_bo_demo
+    default: bo_demo
   warehouse_id:
     description: SQL Warehouse ID for the app and queries
 
@@ -38,7 +38,7 @@ resources:
         quartz_cron_expression: "0 0 7 ? * MON-FRI"
         timezone_id: Europe/Stockholm
       tags:
-        project: intrum-bo-demo
+        project: bo-demo
         purpose: report-distribution
 
 targets:
@@ -51,4 +51,4 @@ targets:
   prod:
     variables:
       catalog: prod_catalog
-      schema: intrum_bo_prod
+      schema: bo_demo_prod

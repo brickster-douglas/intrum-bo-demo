@@ -1,16 +1,16 @@
 -- ============================================================================
--- Intrum BO Demo — Schema & Sample Data Setup
+-- BO Demo — Schema & Sample Data Setup
 -- ============================================================================
 -- Replace YOUR_CATALOG with your Unity Catalog catalog name.
 -- Run this in a Databricks SQL Editor or notebook.
 -- ============================================================================
 
 -- Step 1: Create Schema
-CREATE SCHEMA IF NOT EXISTS YOUR_CATALOG.intrum_bo_demo
+CREATE SCHEMA IF NOT EXISTS YOUR_CATALOG.bo_demo
 COMMENT 'SAP BusinessObjects Publications replacement demo';
 
 USE CATALOG YOUR_CATALOG;
-USE SCHEMA intrum_bo_demo;
+USE SCHEMA bo_demo;
 
 -- ============================================================================
 -- Step 2: Create Tables
@@ -79,20 +79,20 @@ CREATE TABLE IF NOT EXISTS delivery_audit_log (
 -- ============================================================================
 
 INSERT INTO recipient_config VALUES
-(1,  'Anna Lindqvist',        'anna.lindqvist@example.com',    'Intrum SE',   'Sweden',      'portfolio_summary',  'region', 'Sweden',      '[{"column":"region","operator":"=","value":"Sweden"}]',      'PDF',   true, current_timestamp()),
-(2,  'Erik Berg',              'erik.berg@example.com',         'Intrum SE',   'Sweden',      'collection_report',  'region', 'Sweden',      '[{"column":"region","operator":"=","value":"Sweden"}]',      'Excel', true, current_timestamp()),
-(3,  'Marco Rossi',            'marco.rossi@example.com',      'Intrum IT',   'Italy',       'portfolio_summary',  'region', 'Italy',       '[{"column":"region","operator":"=","value":"Italy"}]',       'PDF',   true, current_timestamp()),
-(4,  'Elena Bianchi',          'elena.bianchi@example.com',     'Intrum IT',   'Italy',       'collection_report',  'region', 'Italy',       '[{"column":"region","operator":"=","value":"Italy"}]',       'CSV',   true, current_timestamp()),
-(5,  'Piotr Kowalski',         'piotr.kowalski@example.com',   'Intrum PL',   'Poland',      'portfolio_summary',  'region', 'Poland',      '[{"column":"region","operator":"=","value":"Poland"}]',      'Excel', true, current_timestamp()),
-(6,  'Dimitris Papadopoulos',  'dimitris.p@example.com',       'Intrum GR',   'Greece',      'portfolio_summary',  'region', 'Greece',      '[{"column":"region","operator":"=","value":"Greece"}]',      'PDF',   true, current_timestamp()),
-(7,  'Lars Andersen',          'lars.andersen@example.com',     'Intrum NO',   'Norway',      'collection_report',  'region', 'Norway',      '[{"column":"region","operator":"=","value":"Norway"}]',      'CSV',   true, current_timestamp()),
-(8,  'Sophie van Dijk',        'sophie.vandijk@example.com',   'Intrum NL',   'Netherlands', 'portfolio_summary',  'region', 'Netherlands', '[{"column":"region","operator":"=","value":"Netherlands"}]', 'PDF',   true, current_timestamp()),
-(9,  'Pablo Martinez',         'pablo.martinez@example.com',   'Intrum ES',   'Spain',       'collection_report',  'region', 'Spain',       '[{"column":"region","operator":"=","value":"Spain"}]',      'Excel', true, current_timestamp()),
-(10, 'Liisa Virtanen',         'liisa.virtanen@example.com',   'Intrum FI',   'Finland',     'portfolio_summary',  'region', 'Finland',     '[{"column":"region","operator":"=","value":"Finland"}]',     'PDF',   true, current_timestamp()),
+(1,  'Anna Lindqvist',        'anna.lindqvist@example.com',    'Acme Collections SE',   'Sweden',      'portfolio_summary',  'region', 'Sweden',      '[{"column":"region","operator":"=","value":"Sweden"}]',      'PDF',   true, current_timestamp()),
+(2,  'Erik Berg',              'erik.berg@example.com',         'Acme Collections SE',   'Sweden',      'collection_report',  'region', 'Sweden',      '[{"column":"region","operator":"=","value":"Sweden"}]',      'Excel', true, current_timestamp()),
+(3,  'Marco Rossi',            'marco.rossi@example.com',      'Acme Collections IT',   'Italy',       'portfolio_summary',  'region', 'Italy',       '[{"column":"region","operator":"=","value":"Italy"}]',       'PDF',   true, current_timestamp()),
+(4,  'Elena Bianchi',          'elena.bianchi@example.com',     'Acme Collections IT',   'Italy',       'collection_report',  'region', 'Italy',       '[{"column":"region","operator":"=","value":"Italy"}]',       'CSV',   true, current_timestamp()),
+(5,  'Piotr Kowalski',         'piotr.kowalski@example.com',   'Acme Collections PL',   'Poland',      'portfolio_summary',  'region', 'Poland',      '[{"column":"region","operator":"=","value":"Poland"}]',      'Excel', true, current_timestamp()),
+(6,  'Dimitris Papadopoulos',  'dimitris.p@example.com',       'Acme Collections GR',   'Greece',      'portfolio_summary',  'region', 'Greece',      '[{"column":"region","operator":"=","value":"Greece"}]',      'PDF',   true, current_timestamp()),
+(7,  'Lars Andersen',          'lars.andersen@example.com',     'Acme Collections NO',   'Norway',      'collection_report',  'region', 'Norway',      '[{"column":"region","operator":"=","value":"Norway"}]',      'CSV',   true, current_timestamp()),
+(8,  'Sophie van Dijk',        'sophie.vandijk@example.com',   'Acme Collections NL',   'Netherlands', 'portfolio_summary',  'region', 'Netherlands', '[{"column":"region","operator":"=","value":"Netherlands"}]', 'PDF',   true, current_timestamp()),
+(9,  'Pablo Martinez',         'pablo.martinez@example.com',   'Acme Collections ES',   'Spain',       'collection_report',  'region', 'Spain',       '[{"column":"region","operator":"=","value":"Spain"}]',      'Excel', true, current_timestamp()),
+(10, 'Liisa Virtanen',         'liisa.virtanen@example.com',   'Acme Collections FI',   'Finland',     'portfolio_summary',  'region', 'Finland',     '[{"column":"region","operator":"=","value":"Finland"}]',     'PDF',   true, current_timestamp()),
 (11, 'Jan Svensson',           'jan.svensson@example.com',     'Nexer AB',    'Sweden',      'portfolio_summary',  'region', 'Sweden',      '[{"column":"region","operator":"=","value":"Sweden"}]',      'CSV',   false, current_timestamp()),
-(12, 'Maria Korhonen',         'maria.korhonen@example.com',   'Intrum FI',   'Finland',     'collection_report',  'region', 'Finland',     '[{"column":"region","operator":"=","value":"Finland"}]',     'Excel', true, current_timestamp()),
-(13, 'Willem Peters',          'willem.peters@example.com',    'Intrum NL',   'Netherlands', 'collection_report',  'region', 'Netherlands', '[{"column":"region","operator":"=","value":"Netherlands"}]', 'CSV',   true, current_timestamp()),
-(14, 'Carmen Garcia',          'carmen.garcia@example.com',    'Intrum ES',   'Spain',       'portfolio_summary',  'region', 'Spain',       '[{"column":"region","operator":"=","value":"Spain"}]',      'PDF',   false, current_timestamp());
+(12, 'Maria Korhonen',         'maria.korhonen@example.com',   'Acme Collections FI',   'Finland',     'collection_report',  'region', 'Finland',     '[{"column":"region","operator":"=","value":"Finland"}]',     'Excel', true, current_timestamp()),
+(13, 'Willem Peters',          'willem.peters@example.com',    'Acme Collections NL',   'Netherlands', 'collection_report',  'region', 'Netherlands', '[{"column":"region","operator":"=","value":"Netherlands"}]', 'CSV',   true, current_timestamp()),
+(14, 'Carmen Garcia',          'carmen.garcia@example.com',    'Acme Collections ES',   'Spain',       'portfolio_summary',  'region', 'Spain',       '[{"column":"region","operator":"=","value":"Spain"}]',      'PDF',   false, current_timestamp());
 
 -- ============================================================================
 -- Step 4: Insert Sample Portfolio Data (17 rows across 8 regions)
@@ -136,19 +136,19 @@ INSERT INTO collection_report VALUES
 -- Replace YOUR_SERVICE_PRINCIPAL_UUID with your app's service principal UUID.
 -- ============================================================================
 
--- GRANT USE SCHEMA ON SCHEMA YOUR_CATALOG.intrum_bo_demo TO `YOUR_SERVICE_PRINCIPAL_UUID`;
--- GRANT SELECT ON TABLE YOUR_CATALOG.intrum_bo_demo.recipient_config TO `YOUR_SERVICE_PRINCIPAL_UUID`;
--- GRANT MODIFY ON TABLE YOUR_CATALOG.intrum_bo_demo.recipient_config TO `YOUR_SERVICE_PRINCIPAL_UUID`;
--- GRANT SELECT ON TABLE YOUR_CATALOG.intrum_bo_demo.delivery_audit_log TO `YOUR_SERVICE_PRINCIPAL_UUID`;
--- GRANT SELECT ON TABLE YOUR_CATALOG.intrum_bo_demo.portfolio_data TO `YOUR_SERVICE_PRINCIPAL_UUID`;
--- GRANT SELECT ON TABLE YOUR_CATALOG.intrum_bo_demo.collection_report TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT USE SCHEMA ON SCHEMA YOUR_CATALOG.bo_demo TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT SELECT ON TABLE YOUR_CATALOG.bo_demo.recipient_config TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT MODIFY ON TABLE YOUR_CATALOG.bo_demo.recipient_config TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT SELECT ON TABLE YOUR_CATALOG.bo_demo.delivery_audit_log TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT SELECT ON TABLE YOUR_CATALOG.bo_demo.portfolio_data TO `YOUR_SERVICE_PRINCIPAL_UUID`;
+-- GRANT SELECT ON TABLE YOUR_CATALOG.bo_demo.collection_report TO `YOUR_SERVICE_PRINCIPAL_UUID`;
 
 -- ============================================================================
 -- Verify
 -- ============================================================================
 
-SELECT 'recipient_config' AS table_name, COUNT(*) AS row_count FROM YOUR_CATALOG.intrum_bo_demo.recipient_config
+SELECT 'recipient_config' AS table_name, COUNT(*) AS row_count FROM YOUR_CATALOG.bo_demo.recipient_config
 UNION ALL
-SELECT 'portfolio_data', COUNT(*) FROM YOUR_CATALOG.intrum_bo_demo.portfolio_data
+SELECT 'portfolio_data', COUNT(*) FROM YOUR_CATALOG.bo_demo.portfolio_data
 UNION ALL
-SELECT 'collection_report', COUNT(*) FROM YOUR_CATALOG.intrum_bo_demo.collection_report;
+SELECT 'collection_report', COUNT(*) FROM YOUR_CATALOG.bo_demo.collection_report;

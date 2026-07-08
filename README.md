@@ -54,14 +54,14 @@ SAP BO Publications sends filtered reports to external recipients on a schedule.
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_ORG/intrum-bo-demo.git
-cd intrum-bo-demo
+git clone https://github.com/YOUR_ORG/bo-demo.git
+cd bo-demo
 ```
 
 ### 2. Configure Databricks CLI
 
 ```bash
-databricks auth login --profile intrum-demo
+databricks auth login --profile bo-demo
 ```
 
 ### 3. Create schema and load sample data
@@ -81,10 +81,10 @@ Import `notebooks/config_driven_report_job.py` to your workspace. Update the `CA
 
 ```bash
 # For Gmail API (OAuth)
-databricks secrets create-scope intrum-demo --profile intrum-demo
-databricks secrets put-secret intrum-demo gmail-client-id --string-value "YOUR_CLIENT_ID" --profile intrum-demo
-databricks secrets put-secret intrum-demo gmail-client-secret --string-value "YOUR_SECRET" --profile intrum-demo
-databricks secrets put-secret intrum-demo gmail-refresh-token --string-value "YOUR_TOKEN" --profile intrum-demo
+databricks secrets create-scope bo-demo --profile bo-demo
+databricks secrets put-secret bo-demo gmail-client-id --string-value "YOUR_CLIENT_ID" --profile bo-demo
+databricks secrets put-secret bo-demo gmail-client-secret --string-value "YOUR_SECRET" --profile bo-demo
+databricks secrets put-secret bo-demo gmail-refresh-token --string-value "YOUR_TOKEN" --profile bo-demo
 ```
 
 Or replace the Gmail API code with SMTP for SendGrid/SES/Office 365.
@@ -95,8 +95,8 @@ Update `apps/recipient-manager/app.yaml` with your workspace hostname, warehouse
 
 ```bash
 # Deploy via Databricks Apps UI or CLI
-databricks apps create --name recipient-manager --profile intrum-demo
-databricks apps deploy --name recipient-manager --source-code-path ./apps/recipient-manager --profile intrum-demo
+databricks apps create --name recipient-manager --profile bo-demo
+databricks apps deploy --name recipient-manager --source-code-path ./apps/recipient-manager --profile bo-demo
 ```
 
 Grant the app's service principal access to the tables (see commented GRANT statements in `data/setup.sql`).
@@ -110,7 +110,7 @@ Open the notebook in the workspace and run all cells. In `DRY_RUN = True` mode, 
 If you have a dashboard JSON definition, import it via the Lakeview API:
 
 ```bash
-databricks api post /api/2.0/lakeview/dashboards --json '{"display_name": "Collection Performance", "serialized_dashboard": "<paste JSON>", "warehouse_id": "YOUR_WAREHOUSE_ID"}' --profile intrum-demo
+databricks api post /api/2.0/lakeview/dashboards --json '{"display_name": "Collection Performance", "serialized_dashboard": "<paste JSON>", "warehouse_id": "YOUR_WAREHOUSE_ID"}' --profile bo-demo
 ```
 
 ## Customizing for Your Data
@@ -140,9 +140,9 @@ See `docs/COST_ESTIMATE.md` for the full model with formulas and sensitivity ana
 ## Repository Structure
 
 ```
-intrum-bo-demo-repo/
+bo-demo-repo/
 ├── README.md                          # This file
-├── LICENSE                            # MIT
+├── LICENSE                            # Custom demo license
 ├── .gitignore
 ├── databricks.yml                     # DABs bundle for deployment
 ├── notebooks/
@@ -159,7 +159,7 @@ intrum-bo-demo-repo/
 ├── dashboard/
 │   └── (import via API — see setup)
 ├── decks/
-│   └── intrum-bo-report-distribution.html  # Amplify presentation deck
+│   └── *.html                              # Amplify presentation deck
 └── docs/
     ├── COST_ESTIMATE.md               # Cost model with formulas
     └── DAIS_2026_Features.md          # Feature research for BO migration

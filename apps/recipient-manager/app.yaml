@@ -14,7 +14,7 @@ env:
   - name: CATALOG
     value: "YOUR_CATALOG"
   - name: SCHEMA
-    value: "intrum_bo_demo"
+    value: "bo_demo"
 
 resources:
   - name: sql-warehouse

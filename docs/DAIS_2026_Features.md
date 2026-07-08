@@ -8,11 +8,11 @@
 
 ## Introduction
 
-Intrum is migrating from SAP BusinessObjects Publications to Databricks AI/BI Dashboards. The core challenge is not just recreating reports — it is replicating the BO publication engine: scheduled, personalized delivery of reports to recipients who are often outside the company's identity system (country managers, external partners, regional teams across Europe).
+The customer is migrating from SAP BusinessObjects Publications to Databricks AI/BI Dashboards. The core challenge is not just recreating reports — it is replicating the BO publication engine: scheduled, personalized delivery of reports to recipients who are often outside the company's identity system (country managers, external partners, regional teams across Europe).
 
 In June 2026, we demoed a config-driven Lakeflow Job to solve the personalized delivery problem. That solution is still the right backbone for per-recipient filtered delivery. But since that demo, several features have shipped that close the remaining gaps — and change what still needs custom code.
 
-This document summarizes what's new, what it means for Intrum specifically, and how the recommended architecture has changed.
+This document summarizes what's new, what it means for the customer specifically, and how the recommended architecture has changed.
 
 ---
 
@@ -31,7 +31,7 @@ These features directly address gaps we flagged in the June demo.
 - Dashboard author creates a schedule and adds those destinations as subscribers
 - On each run, recipients receive a PDF snapshot of the dashboard
 
-**Why it matters for Intrum:** This was the single biggest limitation we flagged in June. BO Publications sends reports to country managers who do not have Databricks accounts — and there was no native way to do that. Now the subscription system can reach them directly. For broadcast scenarios (everyone gets the same report), no custom job is needed.
+**Why it matters for the customer:** This was the single biggest limitation we flagged in June. BO Publications sends reports to country managers who do not have Databricks accounts — and there was no native way to do that. Now the subscription system can reach them directly. For broadcast scenarios (everyone gets the same report), no custom job is needed.
 
 **What it does not do:** Every subscriber gets the same view. If the Sweden country manager needs to see Swedish data only and the Italy country manager needs Italian data only, subscriptions cannot filter per recipient. That is still the job of the Lakeflow Job.
 
@@ -48,7 +48,7 @@ These features directly address gaps we flagged in the June demo.
 - Up to 100,000 rows per attachment
 - Tabular attachments work for email subscriptions; Slack and Teams subscriptions receive PDF only
 
-**Why it matters for Intrum:** BO Publications sends data files — formatted Excel sheets or CSVs that recipients open and work with. A PDF screenshot alone is not a replacement. Now Databricks subscriptions can deliver the same types of attachments. A country manager receives both the visual PDF and the underlying data in Excel. That closes a significant functional gap.
+**Why it matters for the customer:** BO Publications sends data files — formatted Excel sheets or CSVs that recipients open and work with. A PDF screenshot alone is not a replacement. Now Databricks subscriptions can deliver the same types of attachments. A country manager receives both the visual PDF and the underlying data in Excel. That closes a significant functional gap.
 
 **Reference:** [Manage scheduled dashboard updates and subscriptions](https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/schedule-subscribe)
 
@@ -64,20 +64,20 @@ These features directly address gaps we flagged in the June demo.
 # databricks.yml (simplified)
 resources:
   dashboards:
-    intrum_collection_dashboard:
-      display_name: "Intrum Collection Dashboard"
-      file_path: ../src/intrum_collection.lvdash.json
+    collection_dashboard:
+      display_name: "Collection Dashboard"
+      file_path: ../src/collection.lvdash.json
       warehouse_id: ${var.warehouse_id}
   genie_spaces:
-    intrum_portfolio_genie:
+    portfolio_genie:
       title: "Portfolio Performance"
       warehouse_id: ${var.warehouse_id}
-      file_path: ./intrum_portfolio.geniespace.json
+      file_path: ./portfolio.geniespace.json
 ```
 
 When deployed to dev, it uses `dev_catalog.dev_schema`. When deployed to prod, it uses `prod_catalog.prod_schema`. Same dashboard definition, different data. Promotion happens through your normal pipeline (GitHub Actions, Azure DevOps, etc.).
 
-**Why it matters for Intrum:** The team asked about CI/CD for dashboards on May 29. This is the answer. No more manual copy-paste between environments. Dashboards are version-controlled, testable, and promoted exactly like the rest of the data pipeline. This is how you manage 50+ reports across multiple countries at production quality.
+**Why it matters for the customer:** The team asked about CI/CD for dashboards on May 29. This is the answer. No more manual copy-paste between environments. Dashboards are version-controlled, testable, and promoted exactly like the rest of the data pipeline. This is how you manage 50+ reports across multiple countries at production quality.
 
 **Note:** Requires the DABs direct deployment engine (`bundle: engine: direct`), which becomes the default on July 24, 2026.
 
@@ -114,7 +114,7 @@ These features are not blockers, but they make the migration faster, more comple
 - "Build a counter showing total outstanding balance for Q2"
 - "Add a date range filter that applies to all charts on this page"
 
-**Why it matters for Intrum:** Rebuilding 50+ BO WebI reports as AI/BI Dashboards is a significant effort. Genie Code accelerates this — describe the report in words and let the AI generate it. Not 100% accurate on the first pass, but it dramatically reduces the time to create the initial draft. Use it to generate, then refine.
+**Why it matters for the customer:** Rebuilding 50+ BO WebI reports as AI/BI Dashboards is a significant effort. Genie Code accelerates this — describe the report in words and let the AI generate it. Not 100% accurate on the first pass, but it dramatically reduces the time to create the initial draft. Use it to generate, then refine.
 
 **Status:** Generally Available (May 28, 2026)
 
@@ -126,7 +126,7 @@ These features are not blockers, but they make the migration faster, more comple
 
 **What it is:** Upload a Power BI (`.pbix`, `.pbit`) or Tableau (`.twb`, `.twbx`) file and Genie Code converts it into an AI/BI Dashboard connected to your Unity Catalog data. It recreates visualizations and generates Metric Views for the underlying business logic.
 
-**Why it matters for Intrum:** While there is no direct BO importer (see Section 3), if any reports exist in Power BI or Tableau format from the broader DWH modernization, they can be imported directly. This is also relevant if Intrum has any QlikView reports that have been converted to Power BI at any point. Reduces migration effort to near-zero for those reports.
+**Why it matters for the customer:** While there is no direct BO importer (see Section 3), if any reports exist in Power BI or Tableau format from the broader DWH modernization, they can be imported directly. This is also relevant if the customer has any QlikView reports that have been converted to Power BI at any point. Reduces migration effort to near-zero for those reports.
 
 **Status:** Generally Available (July 2, 2026). Beta through June, promoted to GA at DAIS.
 
@@ -148,7 +148,7 @@ Several improvements shipped in May–June 2026 that make Metric Views more capa
 | **Median and Percentile** | New aggregate expressions available in the low-code editor | BO formula editor functions |
 | **Local Metric Views** | Create Metric Views directly inside a dashboard without publishing to Unity Catalog | BO universe-per-report pattern |
 
-**Why it matters for Intrum:** Each of these closes a specific functional gap versus BO Universes. The more parity Metric Views have with BO Universes, the more accurately the team can replicate existing report logic without writing raw SQL.
+**Why it matters for the customer:** Each of these closes a specific functional gap versus BO Universes. The more parity Metric Views have with BO Universes, the more accurately the team can replicate existing report logic without writing raw SQL.
 
 **Reference:** [Create and edit metric views](https://learn.microsoft.com/en-us/azure/databricks/business-semantics/metric-views/create-edit)
 
@@ -158,7 +158,7 @@ Several improvements shipped in May–June 2026 that make Metric Views more capa
 
 **What it is:** Dashboard subscriptions can push PDF snapshots and dashboard links to Slack channels or Microsoft Teams channels on a schedule. The channel receives a PNG image preview directly in the channel feed, plus a PDF attachment in the thread.
 
-**Why it matters for Intrum:** Internal teams often prefer receiving operational reports where they already work — in Teams or Slack — rather than checking email. This is a zero-code delivery channel. No custom job needed. Relevant for internal distribution lists that currently receive BO publications by email.
+**Why it matters for the customer:** Internal teams often prefer receiving operational reports where they already work — in Teams or Slack — rather than checking email. This is a zero-code delivery channel. No custom job needed. Relevant for internal distribution lists that currently receive BO publications by email.
 
 **Reference:** [Manage scheduled dashboard updates and subscriptions](https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/schedule-subscribe)
 
@@ -168,7 +168,7 @@ Several improvements shipped in May–June 2026 that make Metric Views more capa
 
 **What it is:** Dashboard authors can set custom subject lines on subscription emails. Previously the subject was always "Dashboard: [dashboard name]".
 
-**Why it matters for Intrum:** Small but important for BO parity. BO emails have branded subjects like "Monthly Portfolio Report — AT" or "Q2 Collection Summary — SE". Now Databricks subscription emails can match that branding. Recipients recognize what they are receiving before opening.
+**Why it matters for the customer:** Small but important for BO parity. BO emails have branded subjects like "Monthly Portfolio Report — AT" or "Q2 Collection Summary — SE". Now Databricks subscription emails can match that branding. Recipients recognize what they are receiving before opening.
 
 **Reference:** [Manage scheduled dashboard updates and subscriptions](https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/schedule-subscribe)
 
@@ -176,7 +176,7 @@ Several improvements shipped in May–June 2026 that make Metric Views more capa
 
 ## Section 3: What Is Still Missing
 
-Be honest with Intrum about the remaining gaps. Do not oversell.
+Be honest with the customer about the remaining gaps. Do not oversell.
 
 | Gap | Status | Workaround |
 |---|---|---|
@@ -184,7 +184,7 @@ Be honest with Intrum about the remaining gaps. Do not oversell.
 | **BO WebI / Crystal Reports importer** — upload a `.wid` file and get an AI/BI Dashboard | Does not exist. No announcement. | Genie Code authoring (manual prompt-driven recreation). Faster than scratch, but still manual. |
 | **Per-recipient row filtering in subscriptions** — send different filtered views to different subscribers from the same schedule | Not available. | Lakeflow Job with per-recipient query logic. |
 
-The Lakeflow Job is still required for any scenario involving personalized data per recipient. Subscriptions are for broadcast — everyone gets the same view. That distinction matters for the Intrum use case and should be communicated clearly.
+The Lakeflow Job is still required for any scenario involving personalized data per recipient. Subscriptions are for broadcast — everyone gets the same view. That distinction matters for the customer's use case and should be communicated clearly.
 
 ---
 

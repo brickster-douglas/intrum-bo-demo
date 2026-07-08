@@ -18,7 +18,7 @@ from databricks.sdk import WorkspaceClient
 # ── Configuration ──
 # Set these via environment variables or app.yaml
 CATALOG = os.getenv("CATALOG", "YOUR_CATALOG")
-SCHEMA = os.getenv("SCHEMA", "intrum_bo_demo")
+SCHEMA = os.getenv("SCHEMA", "bo_demo")
 TABLE = f"{CATALOG}.{SCHEMA}.recipient_config"
 AUDIT_TABLE = f"{CATALOG}.{SCHEMA}.delivery_audit_log"
 

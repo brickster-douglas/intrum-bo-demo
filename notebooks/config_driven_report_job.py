@@ -26,14 +26,14 @@
 
 # Configure these for your environment
 CATALOG = dbutils.widgets.get("catalog") if "catalog" in [w.name for w in dbutils.widgets.getAll()] else "YOUR_CATALOG"
-SCHEMA = dbutils.widgets.get("schema") if "schema" in [w.name for w in dbutils.widgets.getAll()] else "intrum_bo_demo"
+SCHEMA = dbutils.widgets.get("schema") if "schema" in [w.name for w in dbutils.widgets.getAll()] else "bo_demo"
 FULL = f"{CATALOG}.{SCHEMA}"
 
 # Email config — store credentials in Databricks Secrets
 # Supports Gmail API (OAuth) or SMTP (SendGrid, SES, Office 365)
-GMAIL_CLIENT_ID = dbutils.secrets.get(scope="intrum-demo", key="gmail-client-id")
-GMAIL_CLIENT_SECRET = dbutils.secrets.get(scope="intrum-demo", key="gmail-client-secret")
-GMAIL_REFRESH_TOKEN = dbutils.secrets.get(scope="intrum-demo", key="gmail-refresh-token")
+GMAIL_CLIENT_ID = dbutils.secrets.get(scope="bo-demo", key="gmail-client-id")
+GMAIL_CLIENT_SECRET = dbutils.secrets.get(scope="bo-demo", key="gmail-client-secret")
+GMAIL_REFRESH_TOKEN = dbutils.secrets.get(scope="bo-demo", key="gmail-refresh-token")
 SENDER_EMAIL = "YOUR_EMAIL@example.com"
 
 # SAFETY: Only send to this email during testing. All other recipients get DRY_RUN.
@@ -181,9 +181,9 @@ import io
 import csv
 
 def render_html_report(df, stats: dict, recipient: dict) -> str:
-    """Render a DataFrame as a styled HTML email body with Intrum branding.
+    """Render a DataFrame as a styled HTML email body with company branding.
     Brand colors: Primary Purple #8750E5, Dark Purple #4F1D8D, Footer #290A4A,
-    Light Purple #C9B0EF, Off-White #F5F4F2. Font: Arial/Helvetica (IntrumSans fallback)."""
+    Light Purple #C9B0EF, Off-White #F5F4F2. Font: Arial/Helvetica."""
     name = recipient["recipient_name"]
     company = recipient["company"]
     report = recipient["report_type"].replace("_", " ").title()
@@ -248,7 +248,7 @@ def render_html_report(df, stats: dict, recipient: dict) -> str:
     <!-- Header -->
     <div style="background:#290A4A;padding:28px 32px;border-radius:0">
         <table style="width:100%" cellpadding="0" cellspacing="0"><tr>
-            <td><span style="color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px">intrum</span></td>
+            <td><span style="color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px">acme collections</span></td>
             <td style="text-align:right"><span style="color:#C9B0EF;font-size:13px">{datetime.now().strftime('%B %d, %Y')}</span></td>
         </tr></table>
     </div>

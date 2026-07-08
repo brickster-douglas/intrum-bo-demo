@@ -1,24 +1,24 @@
-# Intrum BO Replacement — Monthly Cost Estimate
+# BO Replacement — Monthly Cost Estimate
 
 **Prepared by:** Your Name, Solutions Architect
 **Date:** July 2026
 **Region:** Azure EU North (Nordics)
-**Status:** PRELIMINARY — based on initial scoping estimates, pending Intrum's sizing questionnaire response
+**Status:** PRELIMINARY — based on initial scoping estimates, pending the customer's sizing questionnaire response
 
 ---
 
 ## Assumptions (To Be Validated)
 
-These numbers come from our initial scoping calls (May-June 2026). Intrum has not yet returned the sizing questionnaire. All figures marked with (*) are estimates that should be validated.
+These numbers come from our initial scoping calls (May-June 2026). The customer has not yet returned the sizing questionnaire. All figures marked with (*) are estimates that should be validated.
 
 | Parameter | Estimated Value | Source |
 |-----------|----------------|--------|
 | BO reports to migrate | ~24 (*) | Playbook question — not yet confirmed |
 | Scheduled report runs per day | 50-100 (*) | Amplify deck assumption — not confirmed |
 | Total recipients | 20-50 (*) | Amplify deck assumption — not confirmed |
-| BO universes (semantic layers) | 3+ | Confirmed by Intrum (May 25 scoping call) |
+| BO universes (semantic layers) | 3+ | Confirmed by the customer (May 25 scoping call) |
 | Recipients are external | Yes | Confirmed — not in Entra ID |
-| Countries/regions | ~8 (up to 22) | 8 in demo data, Intrum operates in 22 countries |
+| Countries/regions | ~8 (up to 22) | 8 in demo data, the customer operates in 22 countries |
 | Data volume per report | Small (< 100 rows per filtered query) | Based on demo data structure |
 
 **What we DON'T know yet:**
@@ -251,7 +251,7 @@ Total: 1.11 + 7.33 = 8.44 hr
 
 ## Caveats and Disclaimers
 
-1. **These estimates are preliminary.** They are based on initial scoping conversations (May-June 2026), not confirmed inventory data from Intrum. The sizing questionnaire has been sent but not yet returned. Actual costs will be refined once we have: exact report count, recipient lists, frequency per report, data volume per query, and report complexity.
+1. **These estimates are preliminary.** They are based on initial scoping conversations (May-June 2026), not confirmed inventory data from the customer. The sizing questionnaire has been sent but not yet returned. Actual costs will be refined once we have: exact report count, recipient lists, frequency per report, data volume per query, and report complexity.
 
 2. **Serverless SQL warehouse** — all estimates assume a serverless SQL warehouse with auto-stop at 5 minutes. Serverless eliminates VM management, includes infrastructure costs in the DBU rate ($0.91), and starts in 2-6 seconds. There is no separate Azure VM bill. Setting auto-stop to 1 minute (via API) would reduce idle costs by ~80%.
 
@@ -263,13 +263,13 @@ Total: 1.11 + 7.33 = 8.44 hr
 
 6. **With a Databricks commit** (enterprise agreement), DBU rates are typically 30-50% lower. The estimates above use list prices. With a 40% commit discount, the monthly cost drops to ~$64.
 
-7. **Incremental cost only.** These numbers represent the incremental cost of the BO replacement workload. They do not include Intrum's existing Databricks consumption (DWH migration, Modern Data Platform, etc.) which already covers the base SQL warehouse usage.
+7. **Incremental cost only.** These numbers represent the incremental cost of the BO replacement workload. They do not include the customer's existing Databricks consumption (DWH migration, Modern Data Platform, etc.) which already covers the base SQL warehouse usage.
 
 8. **The Lakeflow Job is the bridge.** When Databricks ships native report bursting (~Q4 FY27), the Job becomes optional for most reports. The data layer (tables, Metric Views, dashboards) built now is exactly what native bursting will use. No wasted investment.
 
 ---
 
-## What We Need from Intrum to Refine This Estimate
+## What We Need from the Customer to Refine This Estimate
 
 1. Complete the sizing questionnaire (sent June 2026)
 2. Provide a BO report inventory: report name, frequency, recipient count, filter type
