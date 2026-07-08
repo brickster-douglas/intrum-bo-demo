@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intrum Report Manager</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      background: #F5F4F2;
+      color: #1a1a1a;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Colors ── */
+    :root {
+      --purple: #8750E5;
+      --purple-dark: #4F1D8D;
+      --purple-footer: #290A4A;
+      --purple-light: #C9B0EF;
+      --purple-hover: #9b6be8;
+      --bg: #F5F4F2;
+      --bg-card: #ffffff;
+      --border: #e0ddd8;
+      --text: #1a1a1a;
+      --text-muted: #6b6560;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --error: #dc2626;
+      --error-bg: #fee2e2;
+      --warning: #ca8a04;
+      --warning-bg: #fef9c3;
+      --info: #2563eb;
+      --info-bg: #dbeafe;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: linear-gradient(135deg, var(--purple-footer) 0%, var(--purple-dark) 100%);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .app-header .logo { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+    .app-header .subtitle { color: var(--purple-light); font-size: 13px; margin-top: 2px; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      padding: 0 32px;
+      gap: 0;
+    }
+    .tab-btn {
+      padding: 14px 24px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--purple); }
+    .tab-btn.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+      font-weight: 600;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1320px; margin: 0 auto; padding: 24px 32px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--purple-dark);
+      margin-bottom: 16px;
+    }
+
+    /* ── KPI Row ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      border-top: 4px solid var(--purple);
+      padding: 16px;
+      text-align: center;
+    }
+    .kpi-value { font-size: 32px; font-weight: 700; color: var(--purple-dark); }
+    .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      background: #f8f7f5;
+      border-bottom: 2px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--purple-dark);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0eeeb;
+      vertical-align: middle;
+    }
+    .data-table input, .data-table select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 13px;
+      background: #fff;
+    }
+    .data-table input:focus, .data-table select:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 2px rgba(135,80,229,0.15);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--purple); color: #fff; }
+    .btn-primary:hover { background: var(--purple-hover); }
+    .btn-secondary { background: #f0eeeb; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #e8e5e0; }
+    .btn-danger { background: var(--error); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+    /* ── Toggle ── */
+    .toggle {
+      width: 40px; height: 22px;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: var(--success); }
+    .toggle.off { background: #ccc; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      top: 2px;
+      transition: left 0.2s;
+    }
+    .toggle.on::after { left: 20px; }
+    .toggle.off::after { left: 2px; }
+
+    /* ── Status badge ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-error { background: var(--error-bg); color: var(--error); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+    .badge-muted { background: #f0eeeb; color: var(--text-muted); }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(135,80,229,0.1);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-error { color: var(--error); font-size: 12px; margin-top: 4px; }
+
+    /* ── Search ── */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(135,80,229,0.1);
+    }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+      max-width: 400px;
+    }
+    .toast-success { background: var(--success); color: #fff; }
+    .toast-error { background: var(--error); color: #fff; }
+    .toast-info { background: var(--info); color: #fff; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ── Comparison table ── */
+    .compare-table { width: 100%; border-collapse: collapse; }
+    .compare-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .compare-table th:first-child { background: #f8f7f5; color: var(--text); }
+    .compare-table th:nth-child(2) { background: #fee2e2; color: var(--error); }
+    .compare-table th:nth-child(3) { background: var(--success-bg); color: var(--success); }
+    .compare-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0eeeb;
+      font-size: 13px;
+    }
+    .compare-table tr:hover { background: #faf9f7; }
+
+    /* ── Filter builder ── */
+    .filter-row {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 2fr auto;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: end;
+    }
+    .filter-badge {
+      display: inline-block;
+      background: var(--bg);
+      border: 1px solid var(--purple-light);
+      border-radius: 16px;
+      padding: 4px 14px;
+      margin: 2px 4px;
+      font-size: 12px;
+      color: var(--purple-dark);
+    }
+    .json-preview {
+      background: var(--purple-footer);
+      color: #e0e0e0;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .json-preview .key { color: var(--purple-light); }
+    .json-preview .str { color: #a5d6a7; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-center { display: flex; justify-content: center; align-items: center; padding: 60px; gap: 12px; }
+
+    /* ── Footer ── */
+    .app-footer {
+      background: var(--purple-footer);
+      color: var(--purple-light);
+      text-align: center;
+      padding: 16px;
+      font-size: 11px;
+      margin-top: 40px;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal {
+      background: #fff; border-radius: 12px; width: 720px; max-width: 95vw;
+      max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; color: var(--purple-dark); }
+    .modal-close {
+      background: none; border: none; font-size: 22px; cursor: pointer;
+      color: var(--text-muted); padding: 4px 8px; border-radius: 4px;
+    }
+    .modal-close:hover { background: #f0eeeb; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .condition-group {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 16px; margin-bottom: 8px; background: #faf9f7;
+    }
+    .logic-toggle {
+      display: inline-flex; border-radius: 6px; overflow: hidden;
+      border: 1px solid var(--border); margin: 12px 0;
+    }
+    .logic-toggle button {
+      padding: 6px 16px; border: none; font-size: 12px; font-weight: 600;
+      cursor: pointer; background: #fff; color: var(--text-muted);
+    }
+    .logic-toggle button.active { background: var(--purple); color: #fff; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .filter-row { grid-template-columns: 1fr; }
+      .tab-btn { padding: 12px 14px; font-size: 13px; }
+      .container { padding: 16px; }
+    }
+
+    /* ── Checkbox ── */
+    .checkbox-cell { text-align: center; }
+    .checkbox-cell input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--purple);
+      cursor: pointer;
+    }
+
+    /* ── Inline action buttons ── */
+    .action-btn {
+      padding: 4px 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .action-btn:hover { background: #f0eeeb; }
+
+    /* ── Skeleton loading ── */
+    .skeleton-table { width: 100%; border-collapse: collapse; }
+    .skeleton-table td { padding: 14px 12px; border-bottom: 1px solid #f0eeeb; }
+    .skeleton-bar {
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #f0eeeb 25%, #e8e5e0 50%, #f0eeeb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-bar.short { width: 60%; }
+    .skeleton-bar.medium { width: 80%; }
+    .skeleton-bar.long { width: 95%; }
+    .skeleton-bar.tiny { width: 40%; height: 12px; }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Row hover highlight ── */
+    .data-table tbody tr { border-left: 3px solid transparent; transition: border-color 0.15s, background 0.15s; }
+    .data-table tbody tr:hover { background: #faf9f7; border-left: 3px solid var(--purple); }
+
+    /* ── Audit empty state ── */
+    .empty-state { text-align: center; padding: 48px 24px; }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-state-hint { font-size: 13px; color: var(--text-muted); }
+
+    /* ── Last run indicator ── */
+    .last-run { color: var(--purple-light); font-size: 12px; text-align: right; }
+    .last-run-label { opacity: 0.7; font-size: 11px; }
+
+    /* ── Initial loading screen (shown before Babel compiles) ── */
+    #initial-loader {
+      max-width: 1320px; margin: 0 auto; padding: 24px 32px;
+    }
+    #initial-loader .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    #initial-loader .kpi-card { background: #fff; border: 1px solid #e0ddd8; border-radius: 8px; border-top: 4px solid #8750E5; padding: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+<div id="root">
+  <!-- Initial skeleton shown while Babel compiles — replaced when React mounts -->
+  <header class="app-header">
+    <div>
+      <div class="logo">intrum</div>
+      <div class="subtitle">Report Recipient Manager --- Config-Driven Distribution</div>
+    </div>
+    <div style="color: #C9B0EF; font-size: 12px;">Powered by Databricks Lakeflow</div>
+  </header>
+  <nav class="tab-bar">
+    <button class="tab-btn active">Recipients</button>
+    <button class="tab-btn">Add Recipient</button>
+    <button class="tab-btn">Filter Builder</button>
+    <button class="tab-btn">Audit Log</button>
+    <button class="tab-btn">BO Comparison</button>
+  </nav>
+  <div id="initial-loader">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="skeleton-bar short" style="margin:8px auto;"></div><div class="skeleton-bar tiny" style="margin:4px auto;"></div></div>
+      <div class="kpi-card"><div class="skeleton-bar short" style="margin:8px auto;"></div><div class="skeleton-bar tiny" style="margin:4px auto;"></div></div>
+      <div class="kpi-card"><div class="skeleton-bar short" style="margin:8px auto;"></div><div class="skeleton-bar tiny" style="margin:4px auto;"></div></div>
+      <div class="kpi-card"><div class="skeleton-bar short" style="margin:8px auto;"></div><div class="skeleton-bar tiny" style="margin:4px auto;"></div></div>
+    </div>
+    <div class="card">
+      <table class="skeleton-table"><tbody>
+        <tr><td><div class="skeleton-bar long"></div></td><td><div class="skeleton-bar medium"></div></td><td><div class="skeleton-bar short"></div></td><td><div class="skeleton-bar tiny"></div></td></tr>
+        <tr><td><div class="skeleton-bar medium"></div></td><td><div class="skeleton-bar long"></div></td><td><div class="skeleton-bar short"></div></td><td><div class="skeleton-bar tiny"></div></td></tr>
+        <tr><td><div class="skeleton-bar long"></div></td><td><div class="skeleton-bar short"></div></td><td><div class="skeleton-bar medium"></div></td><td><div class="skeleton-bar tiny"></div></td></tr>
+        <tr><td><div class="skeleton-bar short"></div></td><td><div class="skeleton-bar medium"></div></td><td><div class="skeleton-bar long"></div></td><td><div class="skeleton-bar tiny"></div></td></tr>
+        <tr><td><div class="skeleton-bar medium"></div></td><td><div class="skeleton-bar long"></div></td><td><div class="skeleton-bar short"></div></td><td><div class="skeleton-bar tiny"></div></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ── Constants ──
+const REPORT_TYPES = ["portfolio_summary", "collection_report"];
+const FORMATS = ["PDF", "CSV", "Excel"];
+const REGIONS = ["Sweden", "Norway", "Finland", "Netherlands", "Poland", "Spain", "Italy", "Greece"];
+const OPERATORS = ["=", "!=", "IN", "NOT IN", ">=", "<=", "BETWEEN", "LIKE"];
+const FILTERABLE_COLUMNS = {
+  region: "Region (country/geography)",
+  client_name: "Client Name",
+  portfolio_type: "Portfolio Type (Consumer/Commercial)",
+  month_date: "Report Month",
+  total_cases: "Total Cases (numeric)",
+  total_outstanding_eur: "Outstanding Amount EUR (numeric)",
+  collection_rate: "Collection Rate (decimal)",
+};
+const TABS = [
+  { id: "recipients", label: "Recipients" },
+  { id: "add", label: "Add Recipient" },
+  { id: "filters", label: "Filter Builder" },
+  { id: "audit", label: "Audit Log" },
+  { id: "compare", label: "BO Comparison" },
+];
+
+// ── API helpers ──
+async function api(path, opts = {}) {
+  const res = await fetch(`/api${path}`, {
+    headers: { "Content-Type": "application/json", ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Request failed");
+  }
+  return res.json();
+}
+
+// ── Toast system ──
+function ToastContainer({ toasts }) {
+  return (
+    <div className="toast-container">
+      {toasts.map((t) => (
+        <div key={t.id} className={`toast toast-${t.type}`}>{t.message}</div>
+      ))}
+    </div>
+  );
+}
+
+// ── KPI card ──
+function KpiCard({ label, value }) {
+  return (
+    <div className="kpi-card">
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value">{value ?? "---"}</div>
+    </div>
+  );
+}
+
+// ── Filter Modal ──
+function FilterModal({ recipient, onClose, onSave }) {
+  const [filters, setFilters] = useState([]);
+  const [logic, setLogic] = useState("AND");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!recipient) return;
+    try {
+      const parsed = recipient.filters
+        ? (typeof recipient.filters === "string" ? JSON.parse(recipient.filters) : recipient.filters)
+        : [];
+      setFilters(Array.isArray(parsed) ? parsed : []);
+      // Check if any filter has a logic property
+      if (parsed.length > 0 && parsed[0]._logic) {
+        setLogic(parsed[0]._logic);
+      }
+    } catch { setFilters([]); }
+  }, [recipient]);
+
+  function addCondition() {
+    setFilters([...filters, { column: "region", operator: "=", value: "" }]);
+  }
+
+  function removeCondition(i) {
+    setFilters(filters.filter((_, idx) => idx !== i));
+  }
+
+  function updateCondition(i, field, val) {
+    const next = [...filters];
+    next[i] = { ...next[i], [field]: val };
+    setFilters(next);
+  }
+
+  function buildPreview() {
+    if (filters.length === 0) return "No filters — recipient receives ALL data";
+    const joiner = ` ${logic} `;
+    return "WHERE " + filters.map((f) => {
+      if (f.operator === "IN" || f.operator === "NOT IN") {
+        const vals = f.value.split(",").map((v) => `'${v.trim()}'`).join(", ");
+        return `${f.column} ${f.operator} (${vals})`;
+      }
+      if (f.operator === "BETWEEN") {
+        const parts = f.value.split(",").map((v) => v.trim());
+        return parts.length === 2
+          ? `${f.column} BETWEEN '${parts[0]}' AND '${parts[1]}'`
+          : `${f.column} BETWEEN '${f.value}' AND '${f.value}'`;
+      }
+      if (f.operator === "IS NULL" || f.operator === "IS NOT NULL") {
+        return `${f.column} ${f.operator}`;
+      }
+      return `${f.column} ${f.operator} '${f.value}'`;
+    }).join(joiner);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSave(recipient.recipient_id, filters, logic);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!recipient) return null;
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>Filters for {recipient.recipient_name}</h3>
+          <button className="modal-close" onClick={onClose}>&times;</button>
+        </div>
+        <div className="modal-body">
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+            Define which data this recipient sees. Each condition filters the report query.
+            The Lakeflow Job applies these filters when generating this recipient's report.
+          </p>
+
+          {filters.length > 1 && (
+            <div style={{ textAlign: "center" }}>
+              <div className="logic-toggle">
+                <button className={logic === "AND" ? "active" : ""} onClick={() => setLogic("AND")}>AND</button>
+                <button className={logic === "OR" ? "active" : ""} onClick={() => setLogic("OR")}>OR</button>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 8 }}>
+                {logic === "AND" ? "All conditions must match" : "Any condition can match"}
+              </span>
+            </div>
+          )}
+
+          {filters.map((f, i) => (
+            <div key={i} className="condition-group">
+              {i > 0 && <div style={{ textAlign: "center", fontSize: 11, color: "var(--purple)", fontWeight: 600, marginBottom: 8 }}>{logic}</div>}
+              <div className="filter-row">
+                <div className="form-group">
+                  <label className="form-label">Column</label>
+                  <select className="form-select" value={f.column}
+                    onChange={(e) => updateCondition(i, "column", e.target.value)}>
+                    {Object.entries(FILTERABLE_COLUMNS).map(([k, v]) => (
+                      <option key={k} value={k}>{k} — {v}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Operator</label>
+                  <select className="form-select" value={f.operator}
+                    onChange={(e) => updateCondition(i, "operator", e.target.value)}>
+                    {[...OPERATORS, "IS NULL", "IS NOT NULL"].map((op) => <option key={op}>{op}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Value</label>
+                  <input className="form-input" value={f.value || ""}
+                    disabled={f.operator === "IS NULL" || f.operator === "IS NOT NULL"}
+                    placeholder={
+                      f.operator === "IN" || f.operator === "NOT IN" ? "val1, val2, val3"
+                      : f.operator === "BETWEEN" ? "low, high"
+                      : "value"
+                    }
+                    onChange={(e) => updateCondition(i, "value", e.target.value)} />
+                </div>
+                <div style={{ paddingTop: 22 }}>
+                  <button className="btn btn-danger btn-sm" onClick={() => removeCondition(i)}>✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button className="btn btn-secondary" onClick={addCondition} style={{ marginTop: 8 }}>
+            + Add Condition
+          </button>
+
+          {filters.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <label className="form-label">SQL Preview</label>
+              <div className="json-preview">{buildPreview()}</div>
+              <label className="form-label" style={{ marginTop: 12 }}>JSON</label>
+              <div className="json-preview">{JSON.stringify(filters, null, 2)}</div>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Filters"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Recipients Tab ──
+function RecipientsTab({ addToast, refreshKey, onInitData }) {
+  const [recipients, setRecipients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(new Set());
+  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [filterModalRecipient, setFilterModalRecipient] = useState(null);
+  const [stats, setStats] = useState({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api("/init");
+      setRecipients(data.recipients || []);
+      setStats(data.stats?.recipients || {});
+      if (onInitData) onInitData(data);
+    } catch (e) {
+      // Fallback: try individual endpoints
+      try {
+        const [rData, sData] = await Promise.all([api("/recipients"), api("/stats")]);
+        setRecipients(rData.recipients || []);
+        setStats(sData.recipients || {});
+      } catch (e2) {
+        addToast("error", `Failed to load: ${e2.message}`);
+      }
+    }
+    setLoading(false);
+  }, [refreshKey]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = recipients.filter((r) => {
+    const q = search.toLowerCase();
+    return !q || r.recipient_name?.toLowerCase().includes(q)
+      || r.email?.toLowerCase().includes(q)
+      || r.company?.toLowerCase().includes(q)
+      || r.region?.toLowerCase().includes(q);
+  });
+
+  async function handleToggle(id) {
+    const target = recipients.find(r => r.recipient_id === id);
+    const newActive = !target?.is_active;
+    // Optimistic update — flip locally first, no reload
+    setRecipients(prev => prev.map(r =>
+      r.recipient_id === id ? { ...r, is_active: newActive } : r
+    ));
+    setStats(prev => {
+      const delta = newActive ? 1 : -1;
+      return { ...prev, active: (prev.active || 0) + delta };
+    });
+    addToast("success", `${target?.recipient_name} ${newActive ? "activated" : "deactivated"}`);
+    try {
+      await api(`/recipients/${id}/toggle`, { method: "POST" });
+    } catch (e) {
+      addToast("error", e.message);
+      load(); // revert on error
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this recipient?")) return;
+    setRecipients(prev => prev.filter(r => r.recipient_id !== id));
+    setStats(prev => ({ ...prev, total: (prev.total || 1) - 1 }));
+    try {
+      await api(`/recipients/${id}`, { method: "DELETE" });
+      addToast("success", "Recipient deleted");
+    } catch (e) {
+      addToast("error", e.message);
+      load();
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Delete ${selected.size} selected recipient(s)?`)) return;
+    try {
+      for (const id of selected) {
+        await api(`/recipients/${id}`, { method: "DELETE" });
+      }
+      addToast("success", `Deleted ${selected.size} recipient(s)`);
+      setSelected(new Set());
+      load();
+    } catch (e) { addToast("error", e.message); }
+  }
+
+  async function handleBulkToggle(activate) {
+    try {
+      await api(`/recipients/bulk-toggle?activate=${activate}`, { method: "POST" });
+      addToast("success", activate ? "All activated" : "All deactivated");
+      load();
+    } catch (e) { addToast("error", e.message); }
+  }
+
+  function startEdit(r) {
+    setEditId(r.recipient_id);
+    setEditData({ ...r });
+  }
+
+  async function saveEdit() {
+    try {
+      await api(`/recipients/${editId}`, {
+        method: "PUT",
+        body: JSON.stringify(editData),
+      });
+      // Optimistic update
+      setRecipients(prev => prev.map(r =>
+        r.recipient_id === editId ? { ...r, ...editData } : r
+      ));
+      addToast("success", "Recipient updated");
+      setEditId(null);
+    } catch (e) {
+      addToast("error", e.message);
+      load();
+    }
+  }
+
+  function toggleSelect(id) {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  }
+
+  function toggleAll() {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((r) => r.recipient_id)));
+    }
+  }
+
+  async function handleSaveFilters(recipientId, filters, logic) {
+    const filtersJson = JSON.stringify(filters);
+    const updateData = { filters: filtersJson };
+    if (filters.length > 0 && filters[0].column && filters[0].value) {
+      updateData.filter_column = filters[0].column;
+      updateData.filter_value = filters[0].value;
+    }
+    try {
+      await api(`/recipients/${recipientId}`, {
+        method: "PUT",
+        body: JSON.stringify(updateData),
+      });
+      setRecipients(prev => prev.map(r =>
+        r.recipient_id === recipientId ? { ...r, filters: filtersJson } : r
+      ));
+      addToast("success", `Saved ${filters.length} filter(s)`);
+      setFilterModalRecipient(null);
+    } catch (e) {
+      addToast("error", e.message);
+    }
+  }
+
+  function parseFilters(f) {
+    if (!f) return "No filters";
+    try {
+      const arr = typeof f === "string" ? JSON.parse(f) : f;
+      if (!Array.isArray(arr) || arr.length === 0) return "No filters";
+      return arr.map((c) => `${c.column} ${c.operator} ${c.value}`).join(" AND ");
+    } catch { return String(f); }
+  }
+
+  if (loading) return (
+    <div>
+      <div className="kpi-row">
+        <div className="kpi-card"><div className="skeleton-bar short" style={{margin:"8px auto"}} /><div className="skeleton-bar tiny" style={{margin:"4px auto"}} /></div>
+        <div className="kpi-card"><div className="skeleton-bar short" style={{margin:"8px auto"}} /><div className="skeleton-bar tiny" style={{margin:"4px auto"}} /></div>
+        <div className="kpi-card"><div className="skeleton-bar short" style={{margin:"8px auto"}} /><div className="skeleton-bar tiny" style={{margin:"4px auto"}} /></div>
+        <div className="kpi-card"><div className="skeleton-bar short" style={{margin:"8px auto"}} /><div className="skeleton-bar tiny" style={{margin:"4px auto"}} /></div>
+      </div>
+      <div className="card">
+        <table className="skeleton-table"><tbody>
+          {[0,1,2,3,4].map(i => (
+            <tr key={i}><td><div className="skeleton-bar long" /></td><td><div className="skeleton-bar medium" /></td><td><div className="skeleton-bar short" /></td><td><div className="skeleton-bar tiny" /></td></tr>
+          ))}
+        </tbody></table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="kpi-row">
+        <KpiCard label="Total Recipients" value={stats.total} />
+        <KpiCard label="Active" value={stats.active} />
+        <KpiCard label="Report Types" value={stats.report_types} />
+        <KpiCard label="Regions" value={stats.regions} />
+      </div>
+
+      <div className="card">
+        <div className="search-bar">
+          <input
+            className="search-input"
+            placeholder="Search by name, email, company, or region..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="btn btn-secondary" onClick={load}>Refresh</button>
+        </div>
+
+        <div className="btn-group">
+          <button className="btn btn-success btn-sm" onClick={() => handleBulkToggle(true)}>Activate All</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => handleBulkToggle(false)}>Deactivate All</button>
+          {selected.size > 0 && (
+            <button className="btn btn-danger btn-sm" onClick={handleBulkDelete}>
+              Delete Selected ({selected.size})
+            </button>
+          )}
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="checkbox-cell">
+                  <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
+                </th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Region</th>
+                <th>Report Type</th>
+                <th>Format</th>
+                <th>Active</th>
+                <th>Filters</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.recipient_id}>
+                  <td className="checkbox-cell">
+                    <input type="checkbox" checked={selected.has(r.recipient_id)} onChange={() => toggleSelect(r.recipient_id)} />
+                  </td>
+                  <td>{r.recipient_id}</td>
+                  {editId === r.recipient_id ? (
+                    <>
+                      <td><input value={editData.recipient_name || ""} onChange={(e) => setEditData({...editData, recipient_name: e.target.value})} /></td>
+                      <td><input value={editData.email || ""} onChange={(e) => setEditData({...editData, email: e.target.value})} /></td>
+                      <td><input value={editData.company || ""} onChange={(e) => setEditData({...editData, company: e.target.value})} /></td>
+                      <td>
+                        <select value={editData.region || ""} onChange={(e) => setEditData({...editData, region: e.target.value})}>
+                          {REGIONS.map((reg) => <option key={reg}>{reg}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <select value={editData.report_type || ""} onChange={(e) => setEditData({...editData, report_type: e.target.value})}>
+                          {REPORT_TYPES.map((rt) => <option key={rt}>{rt}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <select value={editData.format || ""} onChange={(e) => setEditData({...editData, format: e.target.value})}>
+                          {FORMATS.map((f) => <option key={f}>{f}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <button className={`toggle ${editData.is_active ? "on" : "off"}`} onClick={() => setEditData({...editData, is_active: !editData.is_active})} />
+                      </td>
+                      <td style={{ fontSize: "12px", color: "var(--text-muted)" }}>{parseFilters(r.filters)}</td>
+                      <td>
+                        <button className="btn btn-primary btn-sm" onClick={saveEdit}>Save</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setEditId(null)} style={{marginLeft: 4}}>Cancel</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td style={{fontWeight: 500}}>{r.recipient_name}</td>
+                      <td>{r.email}</td>
+                      <td>{r.company}</td>
+                      <td>{r.region}</td>
+                      <td><span className="badge badge-info">{r.report_type}</span></td>
+                      <td><span className="badge badge-muted">{r.format}</span></td>
+                      <td>
+                        <button className={`toggle ${r.is_active ? "on" : "off"}`} onClick={() => handleToggle(r.recipient_id)} />
+                      </td>
+                      <td style={{ fontSize: "12px", color: "var(--purple)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "pointer" }}
+                          onClick={() => setFilterModalRecipient(r)}
+                          title="Click to edit filters">
+                        {parseFilters(r.filters)} ✎
+                      </td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <button className="action-btn" title="Edit" onClick={() => startEdit(r)}>&#9998;</button>
+                        <button className="action-btn" title="Delete" onClick={() => handleDelete(r.recipient_id)}>&#128465;</button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={11} style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>
+                  {search ? "No recipients match your search." : "No recipients configured."}
+                </td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {filterModalRecipient && (
+        <FilterModal
+          recipient={filterModalRecipient}
+          onClose={() => setFilterModalRecipient(null)}
+          onSave={handleSaveFilters}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Add Recipient Tab ──
+function AddRecipientTab({ addToast, onCreated }) {
+  const [form, setForm] = useState({
+    recipient_name: "", email: "", company: "", region: "Sweden",
+    report_type: "portfolio_summary", format: "PDF",
+    is_active: false,
+  });
+  const [filters, setFilters] = useState([{ column: "region", operator: "=", value: "" }]);
+  const [logic, setLogic] = useState("AND");
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  function validate() {
+    const e = {};
+    if (!form.recipient_name.trim()) e.recipient_name = "Required";
+    if (!form.email.trim()) e.email = "Required";
+    else if (!form.email.includes("@")) e.email = "Invalid email format";
+    if (!form.company.trim()) e.company = "Required";
+    if (!form.region.trim()) e.region = "Required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function addCondition() {
+    setFilters([...filters, { column: "region", operator: "=", value: "" }]);
+  }
+
+  function removeCondition(i) {
+    setFilters(filters.filter((_, idx) => idx !== i));
+  }
+
+  function updateCondition(i, field, val) {
+    const next = [...filters];
+    next[i] = { ...next[i], [field]: val };
+    setFilters(next);
+  }
+
+  function buildPreview() {
+    const valid = filters.filter(f => f.value || f.operator === "IS NULL" || f.operator === "IS NOT NULL");
+    if (valid.length === 0) return null;
+    return "WHERE " + valid.map((f) => {
+      if (f.operator === "IN" || f.operator === "NOT IN") {
+        const vals = f.value.split(",").map((v) => `'${v.trim()}'`).join(", ");
+        return `${f.column} ${f.operator} (${vals})`;
+      }
+      if (f.operator === "BETWEEN") {
+        const parts = f.value.split(",").map((v) => v.trim());
+        return parts.length === 2 ? `${f.column} BETWEEN '${parts[0]}' AND '${parts[1]}'` : `${f.column} = '${f.value}'`;
+      }
+      if (f.operator === "IS NULL" || f.operator === "IS NOT NULL") return `${f.column} ${f.operator}`;
+      return `${f.column} ${f.operator} '${f.value}'`;
+    }).join(` ${logic} `);
+  }
+
+  async function handleSubmit(ev) {
+    ev.preventDefault();
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const validFilters = filters.filter(f => f.value || f.operator === "IS NULL" || f.operator === "IS NOT NULL");
+      const filtersJson = JSON.stringify(validFilters);
+      const firstFilter = validFilters[0] || {};
+      const result = await api("/recipients", {
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          filters: filtersJson,
+          filter_column: firstFilter.column || "region",
+          filter_value: firstFilter.value || "",
+        }),
+      });
+      addToast("success", `Created ${form.recipient_name} (ID: ${result.id})`);
+      setForm({ recipient_name: "", email: "", company: "", region: "Sweden",
+        report_type: "portfolio_summary", format: "PDF", is_active: false });
+      setFilters([{ column: "region", operator: "=", value: "" }]);
+      setErrors({});
+      onCreated();
+    } catch (e) { addToast("error", e.message); }
+    setSaving(false);
+  }
+
+  const preview = buildPreview();
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-title">Add New Recipient</div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div>
+              <div className="form-group">
+                <label className="form-label">Name *</label>
+                <input className="form-input" value={form.recipient_name} placeholder="Name"
+                  onChange={(e) => setForm({...form, recipient_name: e.target.value})} />
+                {errors.recipient_name && <div className="form-error">{errors.recipient_name}</div>}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email *</label>
+                <input className="form-input" type="email" value={form.email} placeholder="Email"
+                  onChange={(e) => setForm({...form, email: e.target.value})} />
+                {errors.email && <div className="form-error">{errors.email}</div>}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Company *</label>
+                <input className="form-input" value={form.company} placeholder="Company"
+                  onChange={(e) => setForm({...form, company: e.target.value})} />
+                {errors.company && <div className="form-error">{errors.company}</div>}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Region</label>
+                <select className="form-select" value={form.region}
+                  onChange={(e) => {
+                    const region = e.target.value;
+                    setForm({...form, region});
+                    setFilters(prev => prev.map((f, i) => {
+                      if (i === 0 && f.column === "region" && (!f.value || REGIONS.includes(f.value))) {
+                        return { ...f, value: region };
+                      }
+                      return f;
+                    }));
+                  }}>
+                  {REGIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <div className="form-group">
+                <label className="form-label">Report Type</label>
+                <select className="form-select" value={form.report_type}
+                  onChange={(e) => setForm({...form, report_type: e.target.value})}>
+                  {REPORT_TYPES.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Output Format</label>
+                <select className="form-select" value={form.format}
+                  onChange={(e) => setForm({...form, format: e.target.value})}>
+                  {FORMATS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 16, marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <label className="form-label" style={{ marginBottom: 0, fontSize: 15, fontWeight: 600, color: "var(--purple-dark)" }}>Report Filters</label>
+              {filters.length > 1 && (
+                <div className="logic-toggle">
+                  <button type="button" className={logic === "AND" ? "active" : ""} onClick={() => setLogic("AND")}>AND</button>
+                  <button type="button" className={logic === "OR" ? "active" : ""} onClick={() => setLogic("OR")}>OR</button>
+                </div>
+              )}
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
+              Define which data this recipient sees. Each condition filters the report query.
+            </p>
+
+            {filters.map((f, i) => (
+              <div key={i} className="condition-group">
+                {i > 0 && <div style={{ textAlign: "center", fontSize: 11, color: "var(--purple)", fontWeight: 600, marginBottom: 8 }}>{logic}</div>}
+                <div className="filter-row">
+                  <div className="form-group">
+                    {i === 0 && <label className="form-label">Column</label>}
+                    <select className="form-select" value={f.column}
+                      onChange={(e) => updateCondition(i, "column", e.target.value)}>
+                      {Object.entries(FILTERABLE_COLUMNS).map(([k, v]) => (
+                        <option key={k} value={k}>{k} — {v}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    {i === 0 && <label className="form-label">Operator</label>}
+                    <select className="form-select" value={f.operator}
+                      onChange={(e) => updateCondition(i, "operator", e.target.value)}>
+                      {[...OPERATORS, "IS NULL", "IS NOT NULL"].map((op) => <option key={op}>{op}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    {i === 0 && <label className="form-label">Value</label>}
+                    <input className="form-input" value={f.value || ""}
+                      disabled={f.operator === "IS NULL" || f.operator === "IS NOT NULL"}
+                      placeholder={
+                        f.operator === "IN" || f.operator === "NOT IN" ? "val1, val2, val3"
+                        : f.operator === "BETWEEN" ? "low, high"
+                        : "value"
+                      }
+                      onChange={(e) => updateCondition(i, "value", e.target.value)} />
+                  </div>
+                  <div style={{ paddingTop: i === 0 ? 22 : 0 }}>
+                    <button type="button" className="btn btn-danger btn-sm" onClick={() => removeCondition(i)}
+                      disabled={filters.length === 1}>✕</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button type="button" className="btn btn-secondary btn-sm" onClick={addCondition} style={{ marginTop: 8 }}>
+              + Add Condition
+            </button>
+
+            {preview && (
+              <div style={{ marginTop: 12 }}>
+                <label className="form-label" style={{ fontSize: 11 }}>SQL Preview</label>
+                <div className="json-preview" style={{ fontSize: 11, padding: 10 }}>{preview}</div>
+              </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={form.is_active}
+                onChange={(e) => setForm({...form, is_active: e.target.checked})}
+                style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+              <span className="form-label" style={{ marginBottom: 0 }}>Activate immediately</span>
+            </label>
+          </div>
+          <button className="btn btn-primary" type="submit" disabled={saving}>
+            {saving ? "Creating..." : "Add Recipient"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Filter Builder Tab ──
+function FilterBuilderTab({ addToast, refreshKey }) {
+  const [recipients, setRecipients] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [filters, setFilters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await api("/recipients");
+        setRecipients(data.recipients);
+        if (data.recipients.length > 0 && !selectedId) {
+          setSelectedId(data.recipients[0].recipient_id);
+        }
+      } catch (e) { addToast("error", e.message); }
+      setLoading(false);
+    })();
+  }, [refreshKey]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const r = recipients.find((r) => r.recipient_id === selectedId);
+    if (r) {
+      try {
+        const parsed = r.filters ? (typeof r.filters === "string" ? JSON.parse(r.filters) : r.filters) : [];
+        setFilters(Array.isArray(parsed) ? parsed : []);
+      } catch { setFilters([]); }
+    }
+  }, [selectedId, recipients]);
+
+  function addCondition() {
+    setFilters([...filters, { column: "region", operator: "=", value: "" }]);
+  }
+
+  function removeCondition(i) {
+    setFilters(filters.filter((_, idx) => idx !== i));
+  }
+
+  function updateCondition(i, field, val) {
+    const next = [...filters];
+    next[i] = { ...next[i], [field]: val };
+    setFilters(next);
+  }
+
+  async function saveFilters() {
+    setSaving(true);
+    try {
+      const filtersJson = JSON.stringify(filters);
+      const updateData = { filters: filtersJson };
+      if (filters.length > 0 && filters[0].column && filters[0].value) {
+        updateData.filter_column = filters[0].column;
+        updateData.filter_value = filters[0].value;
+      }
+      await api(`/recipients/${selectedId}`, {
+        method: "PUT",
+        body: JSON.stringify(updateData),
+      });
+      addToast("success", `Saved ${filters.length} filter(s)`);
+    } catch (e) { addToast("error", e.message); }
+    setSaving(false);
+  }
+
+  function buildWhereClause() {
+    if (filters.length === 0) return null;
+    return filters.map((f) => {
+      if (f.operator === "IN" || f.operator === "NOT IN") {
+        const vals = f.value.split(",").map((v) => `'${v.trim()}'`).join(", ");
+        return `\`${f.column}\` ${f.operator} (${vals})`;
+      }
+      if (f.operator === "BETWEEN") {
+        const parts = f.value.split(",").map((v) => v.trim());
+        return parts.length === 2
+          ? `\`${f.column}\` BETWEEN '${parts[0]}' AND '${parts[1]}'`
+          : `\`${f.column}\` BETWEEN '${f.value}' AND '${f.value}'`;
+      }
+      return `\`${f.column}\` ${f.operator} '${f.value}'`;
+    }).join("\n  AND ");
+  }
+
+  if (loading) return <div className="loading-center"><div className="spinner" /> Loading...</div>;
+
+  const selected = recipients.find((r) => r.recipient_id === selectedId);
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-title">Select Recipient</div>
+        <select className="form-select" value={selectedId || ""}
+          onChange={(e) => setSelectedId(Number(e.target.value))}>
+          {recipients.map((r) => (
+            <option key={r.recipient_id} value={r.recipient_id}>
+              {r.recipient_id} -- {r.recipient_name} ({r.email})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selected && (
+        <>
+          <div className="card">
+            <div className="card-title">Current Filters for {selected.recipient_name}</div>
+            {filters.length === 0 ? (
+              <p style={{ color: "var(--text-muted)" }}>No filters configured -- recipient will receive ALL data.</p>
+            ) : (
+              <div>{filters.map((f, i) => (
+                <span key={i} className="filter-badge">{f.column} {f.operator} <strong>{f.value}</strong></span>
+              ))}</div>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="card-title">Edit Filters</div>
+            {filters.map((f, i) => (
+              <div key={i} className="filter-row">
+                <div className="form-group">
+                  {i === 0 && <label className="form-label">Column</label>}
+                  <select className="form-select" value={f.column}
+                    onChange={(e) => updateCondition(i, "column", e.target.value)}>
+                    {Object.entries(FILTERABLE_COLUMNS).map(([k, v]) => (
+                      <option key={k} value={k}>{k} ({v})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  {i === 0 && <label className="form-label">Operator</label>}
+                  <select className="form-select" value={f.operator}
+                    onChange={(e) => updateCondition(i, "operator", e.target.value)}>
+                    {OPERATORS.map((op) => <option key={op}>{op}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  {i === 0 && <label className="form-label">Value</label>}
+                  <input className="form-input" value={f.value}
+                    placeholder={f.operator === "IN" ? "val1, val2, val3" : f.operator === "BETWEEN" ? "low, high" : "value"}
+                    onChange={(e) => updateCondition(i, "value", e.target.value)} />
+                </div>
+                <div style={{ paddingBottom: 16 }}>
+                  <button className="btn btn-danger btn-sm" onClick={() => removeCondition(i)}>Remove</button>
+                </div>
+              </div>
+            ))}
+
+            <div className="btn-group">
+              <button className="btn btn-secondary" onClick={addCondition}>+ Add Condition</button>
+              <button className="btn btn-primary" onClick={saveFilters} disabled={saving}>
+                {saving ? "Saving..." : "Save Filters"}
+              </button>
+            </div>
+          </div>
+
+          {filters.length > 0 && (
+            <div className="card">
+              <div className="card-title">SQL Preview</div>
+              <div className="json-preview">WHERE {buildWhereClause()}</div>
+
+              <div style={{ marginTop: 16 }}>
+                <div className="card-title" style={{ fontSize: 14 }}>JSON</div>
+                <div className="json-preview">{JSON.stringify(filters, null, 2)}</div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Audit Log Tab ──
+function AuditLogTab({ addToast }) {
+  const [audit, setAudit] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 25;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: PAGE_SIZE, offset: page * PAGE_SIZE });
+      if (statusFilter) params.set("status", statusFilter);
+      const data = await api(`/audit?${params}`);
+      setAudit(data.audit);
+      setTotal(data.total);
+    } catch (e) { addToast("error", e.message); }
+    setLoading(false);
+  }, [statusFilter, page]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function statusBadge(s) {
+    const map = { SUCCESS: "badge-success", FAILED: "badge-error", DRY_RUN: "badge-warning", SKIPPED: "badge-muted" };
+    return <span className={`badge ${map[s] || "badge-muted"}`}>{s}</span>;
+  }
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  return (
+    <div>
+      <div className="card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div className="card-title" style={{ marginBottom: 0 }}>Delivery Audit Log</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <select className="form-select" style={{ width: "auto" }} value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}>
+              <option value="">All statuses</option>
+              <option value="SUCCESS">SUCCESS</option>
+              <option value="FAILED">FAILED</option>
+              <option value="DRY_RUN">DRY_RUN</option>
+              <option value="SKIPPED">SKIPPED</option>
+            </select>
+            <button className="btn btn-secondary btn-sm" onClick={load}>Refresh</button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="loading-center"><div className="spinner" /> Loading audit log...</div>
+        ) : (
+          <>
+            <div style={{ overflowX: "auto" }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Delivery ID</th>
+                    <th>Recipient</th>
+                    <th>Email</th>
+                    <th>Report Type</th>
+                    <th>Region</th>
+                    <th>Format</th>
+                    <th>Rows</th>
+                    <th>Status</th>
+                    <th>Delivered At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audit.map((a, i) => (
+                    <tr key={i}>
+                      <td style={{ fontFamily: "monospace", fontSize: 11 }}>{a.delivery_id?.substring(0, 8)}...</td>
+                      <td style={{ fontWeight: 500 }}>{a.recipient_name}</td>
+                      <td>{a.email}</td>
+                      <td><span className="badge badge-info">{a.report_type}</span></td>
+                      <td>{a.region_filter}</td>
+                      <td><span className="badge badge-muted">{a.format}</span></td>
+                      <td>{a.row_count}</td>
+                      <td>{statusBadge(a.status)}</td>
+                      <td style={{ fontSize: 12 }}>{a.delivered_at?.replace("T", " ").substring(0, 19)}</td>
+                    </tr>
+                  ))}
+                  {audit.length === 0 && (
+                    <tr><td colSpan={9}>
+                      <div className="empty-state">
+                        <div className="empty-state-icon">&#128230;</div>
+                        <div className="empty-state-title">No deliveries found</div>
+                        <div className="empty-state-hint">Run the Lakeflow Job to generate and deliver reports. Audit entries will appear here automatically.</div>
+                      </div>
+                    </td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="pagination">
+              <span>Showing {page * PAGE_SIZE + 1}--{Math.min((page + 1) * PAGE_SIZE, total)} of {total}</span>
+              <div className="btn-group">
+                <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</button>
+                <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── BO Comparison Tab ──
+function CompareTab() {
+  const rows = [
+    ["Recipient Management", "BO Publication Manager (GUI)", "React app + Delta table in Unity Catalog"],
+    ["Per-Recipient Filtering", "Personalization via universe", "SQL WHERE from config table"],
+    ["Filter Operators", "= only (universe parameters)", "=, !=, IN, NOT IN, >=, <=, BETWEEN, LIKE"],
+    ["Multiple Filter Conditions", "Limited --- one per dimension", "Unlimited --- JSON array of conditions, AND/OR"],
+    ["Output Formats", "PDF, Excel, CSV, HTML", "PDF, Excel, CSV, HTML (any Python format)"],
+    ["Scheduling", "BO CMS scheduler", "Lakeflow Jobs (cron) --- serverless"],
+    ["Audit Trail", "Basic --- CMS event logs", "Full --- delivery_audit_log with every detail"],
+    ["Version History", "None --- no rollback", "Delta time travel --- rollback any change"],
+    ["Self-Service Admin", "Requires BO access + training", "This web app --- zero Databricks expertise needed"],
+    ["Extensibility", "Crystal Reports Designer", "Python functions --- add report types in minutes"],
+    ["Data Governance", "Siloed in BO", "Unity Catalog --- lineage, RBAC, audit across platform"],
+    ["Cost Model", "License-based (per-user)", "Serverless --- pay per query, scales to zero"],
+  ];
+
+  return (
+    <div className="card">
+      <div className="card-title">SAP BO Publications vs. Databricks</div>
+      <p style={{ color: "var(--text-muted)", marginBottom: 20, fontSize: 13 }}>
+        Feature-by-feature comparison showing how this config-driven solution replaces and improves on SAP BusinessObjects Publications.
+      </p>
+      <div style={{ overflowX: "auto" }}>
+        <table className="compare-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>SAP BO Publications</th>
+              <th>Databricks (This Solution)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([cap, bo, db], i) => (
+              <tr key={i}>
+                <td style={{ fontWeight: 500 }}>{cap}</td>
+                <td>{bo}</td>
+                <td>{db}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── App ──
+function formatTimeAgo(isoStr) {
+  if (!isoStr) return null;
+  const d = new Date(isoStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  return d.toLocaleDateString("en-GB", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function App() {
+  const [tab, setTab] = useState("recipients");
+  const [toasts, setToasts] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lastDelivery, setLastDelivery] = useState(null);
+  const [recipientCounts, setRecipientCounts] = useState({ active: null, total: null });
+
+  function addToast(type, message) {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  }
+
+  function refresh() {
+    setRefreshKey((k) => k + 1);
+  }
+
+  function handleInitData(data) {
+    setLastDelivery(data.last_delivery);
+    const s = data.stats?.recipients || {};
+    setRecipientCounts({ active: s.active, total: s.total });
+  }
+
+  const recipientsLabel = recipientCounts.total != null
+    ? `Recipients (${recipientCounts.active ?? 0}/${recipientCounts.total})`
+    : "Recipients";
+
+  const tabLabels = { recipients: recipientsLabel };
+
+  return (
+    <div>
+      <ToastContainer toasts={toasts} />
+
+      <header className="app-header">
+        <div>
+          <div className="logo">intrum</div>
+          <div className="subtitle">Report Recipient Manager --- Config-Driven Distribution</div>
+        </div>
+        <div className="last-run">
+          <div className="last-run-label">Powered by Databricks Lakeflow</div>
+          <div>{lastDelivery ? `Last delivery: ${formatTimeAgo(lastDelivery)}` : "No deliveries yet"}</div>
+        </div>
+      </header>
+
+      <nav className="tab-bar">
+        {TABS.map((t) => (
+          <button key={t.id} className={`tab-btn ${tab === t.id ? "active" : ""}`}
+            onClick={() => setTab(t.id)}>
+            {tabLabels[t.id] || t.label}
+          </button>
+        ))}
+      </nav>
+
+      <main className="container">
+        {tab === "recipients" && <RecipientsTab addToast={addToast} refreshKey={refreshKey} onInitData={handleInitData} />}
+        {tab === "add" && <AddRecipientTab addToast={addToast} onCreated={refresh} />}
+        {tab === "filters" && <FilterBuilderTab addToast={addToast} refreshKey={refreshKey} />}
+        {tab === "audit" && <AuditLogTab addToast={addToast} />}
+        {tab === "compare" && <CompareTab />}
+      </main>
+
+      <footer className="app-footer">
+        Governed by Unity Catalog &middot; Replaces SAP BO Publications &middot; Config-Driven Report Distribution
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

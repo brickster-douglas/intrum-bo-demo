@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Replacing SAP BO Publications with Databricks</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #1B3139; color: #fff; overflow: hidden; }
+  .deck { width: 100vw; height: 100vh; position: relative; }
+  .slide { width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; padding: 80px; position: absolute; top: 0; left: 0; }
+  .slide.active { display: flex; }
+  h1 { font-size: 3.2em; font-weight: 700; line-height: 1.15; margin-bottom: 24px; }
+  h2 { font-size: 2.4em; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+  h3 { font-size: 1.6em; font-weight: 500; margin-bottom: 16px; color: #FF3621; }
+  p, li { font-size: 1.3em; line-height: 1.6; color: #ccd6db; }
+  ul { list-style: none; padding: 0; }
+  ul li { padding: 8px 0; padding-left: 28px; position: relative; }
+  ul li::before { content: '▸'; position: absolute; left: 0; color: #FF3621; font-weight: 700; }
+  .accent { color: #FF3621; }
+  .muted { color: #7a9aad; }
+  .tag { display: inline-block; background: rgba(255,54,33,0.15); color: #FF3621; padding: 4px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 500; margin-right: 8px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; }
+  .card h3 { margin-bottom: 12px; }
+  .card p { font-size: 1.05em; }
+  .card.highlight { border-color: #FF3621; background: rgba(255,54,33,0.08); }
+  .comparison-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .comparison-table th { text-align: left; padding: 14px 16px; border-bottom: 2px solid #FF3621; color: #FF3621; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1px; }
+  .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1em; color: #ccd6db; }
+  .comparison-table tr:hover td { background: rgba(255,255,255,0.03); }
+  .check { color: #4CAF50; font-weight: 700; }
+  .cross { color: #FF3621; font-weight: 700; }
+  .partial { color: #FFC107; font-weight: 700; }
+  .flow-diagram { display: flex; align-items: center; gap: 16px; margin: 24px 0; flex-wrap: wrap; }
+  .flow-box { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 20px 24px; text-align: center; min-width: 160px; }
+  .flow-box.primary { border-color: #FF3621; background: rgba(255,54,33,0.12); }
+  .flow-box h4 { font-size: 1em; color: #fff; margin-bottom: 6px; }
+  .flow-box p { font-size: 0.85em; color: #7a9aad; }
+  .flow-arrow { font-size: 1.8em; color: #FF3621; }
+  .slide-num { position: fixed; bottom: 24px; right: 40px; font-size: 0.9em; color: #556b78; z-index: 100; }
+  .logo { position: fixed; bottom: 24px; left: 40px; font-size: 0.85em; color: #556b78; z-index: 100; letter-spacing: 1px; }
+  .big-number { font-size: 4em; font-weight: 700; color: #FF3621; line-height: 1; }
+  .kpi-row { display: flex; gap: 40px; margin: 24px 0; }
+  .kpi { text-align: center; }
+  .kpi .big-number { font-size: 2.8em; }
+  .kpi .label { font-size: 0.9em; color: #7a9aad; margin-top: 4px; }
+  .timeline { margin: 20px 0; }
+  .timeline-item { display: flex; gap: 20px; padding: 12px 0; border-left: 2px solid #FF3621; padding-left: 24px; margin-left: 12px; }
+  .timeline-item .time { font-weight: 700; color: #FF3621; min-width: 100px; }
+  .timeline-item .desc { color: #ccd6db; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .slide.active > * { animation: fadeIn 0.4s ease-out; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- Slide 1: Title -->
+<div class="slide active" id="s1">
+  <span class="tag">INTRUM</span>
+  <span class="tag">SAP BO MIGRATION</span>
+  <h1 style="margin-top:24px">Replacing BO Publications<br>with <span class="accent">Databricks</span></h1>
+  <p style="font-size:1.5em;color:#7a9aad;margin-top:12px">Config-driven, per-recipient report distribution</p>
+  <p style="margin-top:40px;color:#556b78">Databricks Solutions Architect <span style="color:#FF3621">(Updated with DAIS 2026)</span></p>
+</div>
+
+<!-- Slide 2: The Challenge -->
+<div class="slide" id="s2">
+  <h2>The Challenge</h2>
+  <p style="font-size:1.4em;margin-bottom:32px">BO Publications sends <span class="accent">per-recipient filtered reports</span> to <span class="accent">external recipients</span> via email</p>
+  <div class="two-col">
+    <div>
+      <h3>What BO Does Today</h3>
+      <ul>
+        <li>Scheduled report execution on cron</li>
+        <li>Per-recipient filtering via personalization rules</li>
+        <li>Multiple output formats (PDF, Excel, CSV)</li>
+        <li>Email delivery to arbitrary addresses</li>
+        <li>Recipient management via distribution lists</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The Constraint</h3>
+      <ul>
+        <li>Recipients are <span class="accent">external</span> — not in Entra ID</li>
+        <li>No Databricks accounts</li>
+        <li>No BI tooling on recipient side</li>
+        <li>They expect data in their <span class="accent">inbox</span></li>
+        <li>Tabular data: CSV, Excel, or formatted HTML</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Options Landscape -->
+<div class="slide" id="s3">
+  <h2>Options Landscape</h2>
+  <table class="comparison-table" style="font-size:0.9em">
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>Per-Recipient Filter</th>
+        <th>External Recipients</th>
+        <th>Push (Email)</th>
+        <th>CSV/Excel Attachment</th>
+        <th>Zero-Code</th>
+        <th>Fit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Config-Driven Lakeflow Job</strong></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span> <span style="font-size:0.65em;color:#999">unlimited</span></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td><span class="accent" style="font-weight:700">PRIMARY</span></td>
+      </tr>
+      <tr>
+        <td><strong>AI/BI Dashboard Subscriptions</strong></td>
+        <td><span class="partial">~</span> <span style="font-size:0.6em;color:#999">1 schedule per filter</span></td>
+        <td><span class="check">&#10003;</span> <span style="font-size:0.6em;color:#4CAF50">NEW</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span> <span style="font-size:0.6em;color:#4CAF50">NEW</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td>Complement</td>
+      </tr>
+      <tr>
+        <td><strong>Dashboard Embedding</strong></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td>Complement</td>
+      </tr>
+      <tr>
+        <td><strong>Delta Sharing / OpenSharing</strong></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td><span class="cross">&#10007;</span> <span style="font-size:0.65em;color:#999">data only</span></td>
+        <td><span class="partial">~</span></td>
+        <td>Niche</td>
+      </tr>
+      <tr>
+        <td><strong>SQL Alerts</strong></td>
+        <td><span class="cross">&#10007;</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="cross">&#10007;</span> <span style="font-size:0.65em;color:#999">HTML only</span></td>
+        <td><span class="check">&#10003;</span></td>
+        <td>Poor fit</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px">
+    <h3 style="font-size:0.95em;margin-bottom:10px">Dashboard Subscription Limits</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;font-size:0.85em">
+      <div style="text-align:center"><div class="big-number" style="font-size:2em">100</div><div style="color:#7a9aad;font-size:0.85em">subscribers / schedule</div></div>
+      <div style="text-align:center"><div class="big-number" style="font-size:2em">9 MB</div><div style="color:#7a9aad;font-size:0.85em">max email size (all attachments)</div></div>
+      <div style="text-align:center"><div class="big-number" style="font-size:2em">100K</div><div style="color:#7a9aad;font-size:0.85em">max rows per Excel export</div></div>
+      <div style="text-align:center"><div class="big-number" style="font-size:2em">15</div><div style="color:#7a9aad;font-size:0.85em">max pages per dashboard</div></div>
+    </div>
+    <p style="font-size:0.75em;color:#556b78;margin-top:10px">DLs count as 1 subscriber &bull; CSV/TSV/Excel only via email (not Slack/Teams) &bull; PDF + data attachments share the 9 MB limit &bull; Shares workspace 250 concurrent run quota</p>
+  </div>
+</div>
+
+<!-- Slide 4: Architecture -->
+<div class="slide" id="s4">
+  <h2>Architecture: Config-Driven Distribution</h2>
+  <div class="flow-diagram">
+    <div class="flow-box">
+      <h4>recipient_config</h4>
+      <p>Delta table<br>WHO + WHAT + FILTERS</p>
+    </div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box primary">
+      <h4>Lakeflow Job</h4>
+      <p>Scheduled notebook<br>Query &rarr; Render &rarr; Send</p>
+    </div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box">
+      <h4>Per-Recipient Query</h4>
+      <p>SQL WHERE from config<br>Filtered DataFrame</p>
+    </div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box">
+      <h4>Render</h4>
+      <p>HTML / CSV / Excel<br>Branded template</p>
+    </div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box">
+      <h4>Email (SMTP)</h4>
+      <p>SendGrid / SES<br>Any address</p>
+    </div>
+  </div>
+  <div class="flow-diagram" style="margin-top:16px">
+    <div class="flow-box" style="width:100%;border-color:#4CAF50">
+      <h4 style="color:#4CAF50">delivery_audit_log</h4>
+      <p>Every delivery logged: who received what, when, with which filters. Compliance-grade governance.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: BO Mapping -->
+<div class="slide" id="s5">
+  <h2>BO &rarr; Databricks Mapping</h2>
+  <table class="comparison-table">
+    <thead>
+      <tr><th>SAP BO Concept</th><th>Databricks Equivalent</th><th>Advantage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Publication</td><td>Lakeflow Job (scheduled notebook)</td><td>Serverless, scales to zero</td></tr>
+      <tr><td>Recipient list</td><td><code>recipient_config</code> Delta table</td><td>Versioned, auditable, RBAC</td></tr>
+      <tr><td>Universe filters &rarr; per-user</td><td>SQL WHERE from config columns</td><td>Dynamic, any column, any logic</td></tr>
+      <tr><td>Crystal Reports rendering</td><td>Python functions (HTML/CSV/Excel)</td><td>Any format, custom branding</td></tr>
+      <tr><td>BO scheduling (CMS)</td><td>Databricks Jobs cron</td><td>Serverless compute</td></tr>
+      <tr><td>No audit trail</td><td><code>delivery_audit_log</code> table</td><td>Full compliance trail</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Slide 6: Complementary Options -->
+<div class="slide" id="s6">
+  <h2>Complementary Options</h2>
+  <div class="three-col">
+    <div class="card highlight">
+      <h3>Lakeflow Job</h3>
+      <p class="muted" style="font-size:0.85em">PRIMARY — Push delivery</p>
+      <ul style="margin-top:12px">
+        <li>Per-recipient filtering</li>
+        <li>Any format (PDF/CSV/Excel)</li>
+        <li>Any email address</li>
+        <li>Full audit trail</li>
+        <li>Custom branding</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Dashboard Subscriptions</h3>
+      <p class="muted" style="font-size:0.85em">COMPLEMENT — Zero-code broadcast</p>
+      <ul style="margin-top:12px">
+        <li>No code required</li>
+        <li><span style="color:#4CAF50;font-weight:600">NEW:</span> CSV/TSV/Excel attachments (100K rows)</li>
+        <li><span style="color:#4CAF50;font-weight:600">NEW:</span> External email recipients</li>
+        <li>Up to 100 subscribers per schedule</li>
+        <li>Same data to all — <span class="accent">bursting ~Q4 FY27</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Dashboard Embedding</h3>
+      <p class="muted" style="font-size:0.85em">COMPLEMENT — Interactive self-service</p>
+      <ul style="margin-top:12px">
+        <li>Per-user filtering</li>
+        <li>No Databricks identity needed</li>
+        <li>Interactive dashboards</li>
+        <li>Partner portal ready</li>
+        <li>Pull-based (not email)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: How Dashboard Embedding Works -->
+<div class="slide" id="s7">
+  <h2>Dashboard Embedding — <span class="accent">How It Works</span></h2>
+  <p style="font-size:1.1em;margin-bottom:20px;color:#7a9aad">External users see personalized dashboards — no Databricks account needed</p>
+  <div class="two-col">
+    <div>
+      <h3>Dashboard Creator (you)</h3>
+      <p style="margin-bottom:12px">One thing only — add a filter in your SQL:</p>
+      <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px 18px;font-family:monospace;font-size:0.85em;color:#a8d8b9;margin-bottom:16px">
+        SELECT * FROM portfolio_data<br>
+        WHERE region = <span style="color:#FF3621">__aibi_external_value</span>
+      </div>
+      <p style="color:#ccd6db;font-size:0.95em">That's it. No recipient config. No per-user setup. The dashboard is generic — it works for <strong>any</strong> value.</p>
+      <p style="color:#7a9aad;font-size:0.85em;margin-top:12px">The external_value is NOT controlled by the end user.<br>It's set server-side by your application — secure by design.</p>
+    </div>
+    <div>
+      <h3>Your Application (controls who sees what)</h3>
+      <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px 18px;font-size:0.82em;color:#ccd6db;line-height:1.7">
+        <span style="color:#8750E5">1.</span> Anna logs into <strong>your portal</strong><br>
+        <span style="color:#8750E5">2.</span> Your app looks up Anna → region = <strong>"Sweden"</strong><br>
+        <span style="color:#8750E5">3.</span> Your app calls Databricks API:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#a8d8b9">"Give me a token with external_value=Sweden"</span><br>
+        <span style="color:#8750E5">4.</span> Dashboard renders → Anna sees <strong>only Sweden</strong><br><br>
+        <span style="color:#8750E5">Next user:</span><br>
+        Erik logs in → your app sends <strong>"Denmark"</strong><br>
+        → Erik sees <strong>only Denmark</strong><br><br>
+        <span style="color:#999">Same dashboard. Different data. Controlled by YOUR app.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: What Changed at DAIS 2026 -->
+<div class="slide" id="s8">
+  <h2>What Changed at <span class="accent">DAIS 2026</span></h2>
+  <table class="comparison-table">
+    <thead>
+      <tr><th>Capability</th><th>Before DAIS</th><th>After DAIS</th><th>Impact</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Subscription recipients</td><td>Databricks users only</td><td><span class="check">Any email address</span> (admin-managed)</td><td><span class="accent">Major</span></td></tr>
+      <tr><td>Subscription attachments</td><td>PDF screenshot only</td><td><span class="check">PDF + CSV/TSV/Excel</span> (100K rows)</td><td><span class="accent">Major</span></td></tr>
+      <tr><td>Dashboard CI/CD</td><td>Manual copy-paste</td><td><span class="check">DABs: version-controlled, parameterized</span></td><td><span class="accent">Major</span></td></tr>
+      <tr><td>Subscriber limit</td><td>~20 per schedule</td><td><span class="check">100 per schedule</span> (DLs count as 1)</td><td>Medium</td></tr>
+      <tr><td>Delivery channels</td><td>Email only</td><td><span class="check">Email + Slack + Teams</span></td><td>Medium</td></tr>
+      <tr><td>Email branding</td><td>Generic subject line</td><td><span class="check">Custom subject lines</span></td><td>Low</td></tr>
+      <tr><td>Per-recipient filtering</td><td>Not available</td><td><span class="cross">Still not available</span> — roadmap ~Q4 FY27</td><td>No change</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:24px;background:rgba(255,54,33,0.08);border:1px solid rgba(255,54,33,0.2);border-radius:8px;padding:16px">
+    <p style="font-size:1.1em"><span class="accent" style="font-weight:700">Bottom line:</span> Subscriptions now cover broadcast cases end-to-end (external emails + data files). The Lakeflow Job is still needed for per-recipient filtered delivery — native bursting is on the roadmap but has not shipped.</p>
+  </div>
+</div>
+
+<!-- Slide 9: Cost Estimate -->
+<div class="slide" id="s9">
+  <h2>What Does This <span class="accent">Cost</span>?</h2>
+  <p style="font-size:0.85em;margin-bottom:12px;color:#7a9aad">Azure EU North &bull; Serverless compute &bull; Pay-as-you-go &bull; Based on ~24 reports, 50-100 runs/day (*)</p>
+  <div class="two-col" style="gap:32px">
+    <div>
+      <table class="comparison-table" style="font-size:0.78em">
+        <thead>
+          <tr><th>Component</th><th>Compute</th><th>Formula</th><th style="text-align:right">$/month</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Lakeflow Jobs</strong><br><span style="font-size:0.75em;color:#7a9aad">24 reports, 286 runs/mo</span></td><td style="color:#4CAF50">Jobs<br><span style="font-size:0.8em">$0.47/DBU</span></td><td>24.1 hr &times; 4 DBU/hr<br><span style="font-size:0.8em;color:#4CAF50">No idle tail</span></td><td style="text-align:right">$45.36</td></tr>
+          <tr><td><strong>Subscriptions</strong><br><span style="font-size:0.75em;color:#7a9aad">10 broadcast dashboards</span></td><td>SQL<br><span style="font-size:0.8em">$0.91/DBU</span></td><td>1.67 hr &times; 4 DBU/hr</td><td style="text-align:right">$6.08</td></tr>
+          <tr><td><strong>Dashboard views</strong><br><span style="font-size:0.75em;color:#7a9aad">15 users, 200 views/mo</span></td><td>SQL<br><span style="font-size:0.8em">$0.91/DBU</span></td><td>8.4 hr &times; 4 DBU/hr<br><span style="font-size:0.8em;color:#7a9aad">incl. 5 min idle tail</span></td><td style="text-align:right">$30.72</td></tr>
+          <tr><td><strong>Recipient Manager</strong></td><td>Apps<br><span style="font-size:0.8em">$1.00/DBU</span></td><td>3.3 hr &times; 0.5 DBU/hr <span style="color:#4CAF50;font-size:0.8em">scale-to-zero</span></td><td style="text-align:right">$1.67</td></tr>
+          <tr><td><strong>Storage</strong></td><td>&mdash;</td><td>&lt; 100 MB</td><td style="text-align:right">&lt; $0.10</td></tr>
+          <tr style="border-top:2px solid #FF3621"><td><strong style="color:#FF3621">TOTAL</strong></td><td></td><td><strong>~140 DBU/month</strong></td><td style="text-align:right"><strong style="color:#FF3621;font-size:1.2em">~$84</strong></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.65em;color:#556b78;margin-top:6px">(*) Estimates from initial scoping — pending sizing questionnaire. With commit: ~$50. Jobs have no idle tail — pay only for runtime.</p>
+    </div>
+    <div>
+      <h3 style="font-size:1.1em">vs SAP BusinessObjects</h3>
+      <table class="comparison-table" style="font-size:0.85em">
+        <thead>
+          <tr><th></th><th style="color:#FF3621">SAP BO</th><th style="color:#4CAF50">Databricks</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>User licenses</td><td>$1,250-2,500/mo</td><td><span class="check">$0</span></td></tr>
+          <tr><td>Infrastructure</td><td>$500-2,000/mo</td><td><span class="check">Included</span></td></tr>
+          <tr><td>Admin</td><td>$500-1,000/mo</td><td><span class="check">Self-service</span></td></tr>
+          <tr style="border-top:2px solid #FF3621"><td><strong>Annual</strong></td><td><strong style="color:#FF3621">$27-66K</strong></td><td><strong style="color:#4CAF50">~$600-1K</strong></td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(255,54,33,0.08);border:1px solid rgba(255,54,33,0.2);border-radius:8px;padding:12px;margin-top:12px">
+        <p style="font-size:0.95em;color:#FF3621;font-weight:700;margin-bottom:4px">96-98% cost reduction</p>
+        <p style="font-size:0.75em">No per-seat fees. Adding 100 recipients = $0. Serverless scales to zero. BO 4.3 end of maintenance: Dec 2026.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Roadmap -->
+<div class="slide" id="s10">
+  <h2>Roadmap &amp; Next Steps</h2>
+  <div class="two-col">
+    <div>
+      <h3>Platform Roadmap</h3>
+      <div class="timeline">
+        <div class="timeline-item"><span class="time" style="color:#4CAF50">Live now</span><span class="desc">Lakeflow Job + Subscriptions (external + CSV/Excel) + Embedding + DABs CI/CD</span></div>
+        <div class="timeline-item"><span class="time">Jul 24</span><span class="desc">DABs direct deployment engine (auto-migration)</span></div>
+        <div class="timeline-item"><span class="time">~Q4 FY27</span><span class="desc">Native report bursting in subscriptions — eliminates the need for custom Job in most cases</span></div>
+      </div>
+    </div>
+    <div>
+      <h3>Recommended Next Steps</h3>
+      <ul>
+        <li>Categorize ~24 BO reports: broadcast vs filtered vs interactive</li>
+        <li>Identify 2-3 reports to migrate first</li>
+        <li>Complete sizing questionnaire</li>
+        <li>Production Job with real SMTP</li>
+        <li>Dashboard embedding POC for partner portal</li>
+        <li>DABs CI/CD setup for dashboard promotion</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 11: Thank You -->
+<div class="slide" id="s11">
+  <h1>Thank You</h1>
+  <p style="font-size:1.5em;color:#7a9aad;margin-top:16px">Questions?</p>
+  <div style="margin-top:48px;color:#556b78">
+    <p style="font-size:1.1em"><strong>Your Name</strong> &bull; Solutions Architect</p>
+    <p style="font-size:1em">your.name@databricks.com</p>
+    <p style="font-size:1em;margin-top:12px"><strong>Account Executive</strong></p>
+  </div>
+</div>
+
+</div>
+
+<div class="slide-num"><span id="current">1</span> / <span id="total">11</span></div>
+<div class="logo">DATABRICKS</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+const total = slides.length;
+document.getElementById('total').textContent = total;
+
+function showSlide(n) {
+  slides[current].classList.remove('active');
+  current = ((n % total) + total) % total;
+  slides[current].classList.add('active');
+  document.getElementById('current').textContent = current + 1;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') showSlide(current + 1);
+  else if (e.key === 'ArrowLeft' || e.key === 'Backspace') showSlide(current - 1);
+  else if (e.key === 'Home') showSlide(0);
+  else if (e.key === 'End') showSlide(total - 1);
+  else if (e.key >= '1' && e.key <= '9') showSlide(parseInt(e.key) - 1);
+});
+
+document.addEventListener('click', e => {
+  if (e.clientX > window.innerWidth / 2) showSlide(current + 1);
+  else showSlide(current - 1);
+});
+</script>
+</body>
+</html>

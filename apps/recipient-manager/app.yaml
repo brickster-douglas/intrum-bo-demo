@@ -1,0 +1,23 @@
+command:
+  - uvicorn
+  - main:app
+  - --host
+  - "0.0.0.0"
+  - --port
+  - "8000"
+
+env:
+  - name: DATABRICKS_SERVER_HOSTNAME
+    value: "YOUR_WORKSPACE.cloud.databricks.com"
+  - name: DATABRICKS_HTTP_PATH
+    value: "/sql/1.0/warehouses/YOUR_WAREHOUSE_ID"
+  - name: CATALOG
+    value: "YOUR_CATALOG"
+  - name: SCHEMA
+    value: "intrum_bo_demo"
+
+resources:
+  - name: sql-warehouse
+    sql_warehouse:
+      id: "YOUR_WAREHOUSE_ID"
+      permission: CAN_USE

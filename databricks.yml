@@ -1,0 +1,54 @@
+bundle:
+  name: intrum-bo-demo
+
+workspace:
+  host: ${var.workspace_host}
+
+variables:
+  workspace_host:
+    description: Databricks workspace URL (e.g., https://adb-xxxxx.azuredatabricks.net)
+  catalog:
+    description: Unity Catalog catalog name
+    default: my_catalog
+  schema:
+    description: Schema name for demo tables
+    default: intrum_bo_demo
+  warehouse_id:
+    description: SQL Warehouse ID for the app and queries
+
+resources:
+  jobs:
+    report_distribution:
+      name: "Report Distribution — BO Replacement"
+      description: "Config-driven report distribution job. Replaces SAP BO Publications."
+      tasks:
+        - task_key: run_reports
+          notebook_task:
+            notebook_path: ./notebooks/config_driven_report_job
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            num_workers: 0
+            spark_conf:
+              spark.master: "local[*]"
+            node_type_id: "Standard_DS3_v2"
+      schedule:
+        quartz_cron_expression: "0 0 7 ? * MON-FRI"
+        timezone_id: Europe/Stockholm
+      tags:
+        project: intrum-bo-demo
+        purpose: report-distribution
+
+targets:
+  dev:
+    default: true
+    variables:
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+
+  prod:
+    variables:
+      catalog: prod_catalog
+      schema: intrum_bo_prod
