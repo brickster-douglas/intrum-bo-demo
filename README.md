@@ -123,19 +123,66 @@ databricks api post /api/2.0/lakeview/dashboards --json '{"display_name": "Colle
 
 ## Cost Estimate
 
-Running ~24 reports with 50 recipients on serverless compute:
+All pricing is Azure Premium, EU North, pay-as-you-go (list prices). Each component shows the full range from minimum (light usage, optimized settings) to maximum (heavy usage, worst-case settings).
 
-| Component | Monthly Cost |
-|---|---|
-| Lakeflow Jobs (serverless) | ~$45 |
-| Dashboard subscriptions | ~$6 |
-| Dashboard interactive viewing | ~$31 |
-| Recipient Manager app | ~$2 |
-| **Total (list price)** | **~$84/month** |
+### Pricing Rates
 
-With a Databricks commit (40% discount) and 1-minute auto-stop: **~$35/month**.
+| SKU | $/DBU | Used by |
+|-----|-------|---------|
+| Jobs Serverless | $0.47 | Lakeflow Jobs (no idle tail — pay only for runtime) |
+| SQL Serverless | $0.91 | Dashboard subscriptions + interactive viewing (2X-Small = 4 DBU/hr, auto-stop 5 min default / 1 min via API) |
+| Interactive Serverless | $1.00 | Recipient Manager app (Medium = 0.5 DBU/hr, scales to zero when idle) |
 
-See `docs/COST_ESTIMATE.md` for the full model with formulas and sensitivity analysis.
+### Component Breakdown
+
+| Component | Min | Typical | Max | What drives the range |
+|-----------|-----|---------|-----|----------------------|
+| **Lakeflow Jobs** | **$5** | **$45** | **$376** | Number of reports × frequency × query complexity |
+| | 12 reports, weekly, 3 min each | 24 reports, mixed schedule, 5 min each | 50 reports, daily, 10 min each | |
+| | `48 runs × 3 min ÷ 60 × 4 DBU × $0.47` | `286 runs × 5 min ÷ 60 × 4 DBU × $0.47` | `1200 runs × 10 min ÷ 60 × 4 DBU × $0.47` | |
+| **Dashboard Subscriptions** | **$2** | **$6** | **$85** | Shared warehouse window vs separate wake-ups |
+| | 5 dashboards, back-to-back with Jobs (no extra idle) | 10 dashboards, mostly back-to-back | 20 dashboards, scattered schedules (5 min idle each) | |
+| | `40 runs × 1 min ÷ 60 × 4 DBU × $0.91` | `100 runs × 1 min ÷ 60 × 4 DBU × $0.91` | `200 runs × 7 min ÷ 60 × 4 DBU × $0.91` | |
+| **Dashboard Interactive** | **$3** | **$31** | **$641** | User count × viewing pattern × auto-stop timer |
+| | 5 users, morning only, 1-min auto-stop | 15 users, 4 clusters/day, 5-min auto-stop | 50 users, continuous 8 hr/day | |
+| | `1 wake-up/day × 22 days × 2 min ÷ 60 × 4 DBU × $0.91` | `(1.1 hr query + 7.3 hr idle) × 4 DBU × $0.91` | `176 hr × 4 DBU × $0.91` | |
+| **Recipient Manager App** | **$0** | **$2** | **$360** | Scale-to-zero (default) vs always-on |
+| | Scales to zero — $0 when nobody is using it | 5x/week × 10 min = 3.3 hr active | Always-on 24/7 (no reason to do this) | |
+| | `0 hr × 0.5 DBU × $1.00` | `3.3 hr × 0.5 DBU × $1.00` | `720 hr × 0.5 DBU × $1.00` | |
+| **Storage** | **$0** | **$0** | **$0** | Config tables + audit log < 100 MB — negligible |
+| **TOTAL** | **~$10** | **~$84** | **~$1,462** | |
+
+### Realistic Scenarios
+
+| Scenario | Description | Monthly Cost |
+|----------|-------------|-------------|
+| **Small** | 12 reports, weekly, 5 users, scale-to-zero app | **$10 - $25** |
+| **Medium** | 24 reports, mixed schedule, 15 users | **$50 - $100** |
+| **Large** | 50 reports, daily, 50 users, embedded portal | **$200 - $500** |
+
+### With Optimizations
+
+| Optimization | Effect |
+|-------------|--------|
+| Set SQL warehouse auto-stop to 1 min (API) | Reduces interactive viewing cost by ~80% |
+| Batch all subscriptions right after Jobs | Eliminates subscription idle tail entirely |
+| Databricks commit (enterprise agreement) | 30-50% discount on all DBU rates |
+| All three combined | Typical drops from **$84 to ~$25/month** |
+
+### vs SAP BusinessObjects (50 users)
+
+| | SAP BO | Databricks |
+|---|---|---|
+| User licenses | $1,250-2,500/month | **$0** (no per-seat fees) |
+| Server infrastructure | $500-2,000/month | **Included** in serverless DBU rate |
+| Admin / developer | $500-1,000/month | **Self-service** — config table + app |
+| **Monthly total** | **$2,250-5,500** | **$10-500** (depending on scale) |
+| **Annual total** | **$27,000-66,000** | **$120-6,000** |
+| **Savings** | — | **90-99%** |
+
+Adding more recipients costs $0 — the Job runs one query per filter combination, not per email. SAP BO 4.3 reaches end of maintenance December 2026.
+
+See `docs/COST_ESTIMATE.md` for the full model with detailed formulas and sensitivity analysis.
 
 ## Repository Structure
 
