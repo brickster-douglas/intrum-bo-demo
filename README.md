@@ -148,15 +148,19 @@ Each row shows a realistic range — from light usage to heavy production usage.
 | **Recipient Manager App** | **$0** | **$2** | **$5** | `active hours × 0.5 DBU/hr × $1.00` |
 | | Scales to zero — $0 when idle | 5x/week × 10 min | Daily use, 20 min | Scale-to-zero is the default — cost is negligible |
 | **Storage** | **$0** | **$0** | **$0** | Config tables + audit log < 100 MB |
-| **TOTAL** | **~$10** | **~$84** | **~$338** | |
+| **TOTAL (scale-to-zero)** | **~$10** | **~$84** | **~$338** | |
+| **TOTAL (app always-on)** | **~$370** | **~$442** | **~$698** | Adds $360/month for 24/7 app uptime |
+
+> **Why the app might stay always-on:** Scale-to-zero means the first request after idle takes 10-30 seconds (cold start). If admins use the app frequently or want instant response times, they may disable scale-to-zero. This adds **$360/month** (`720 hr × 0.5 DBU/hr × $1.00`). For most deployments, scale-to-zero is fine — the app is an admin tool used a few times a week, not a real-time dashboard.
 
 ### Scenario Summary
 
-| Scenario | Reports | Recipients | Users | Monthly Cost |
-|----------|---------|-----------|-------|-------------|
-| **Light** | 12, weekly | 20 | 5 | **$10 - $25** |
-| **Medium** | 24, mixed schedule | 50 | 15 | **$50 - $100** |
-| **Heavy** | 50, daily | 100+ | 50 | **$200 - $340** |
+| Scenario | Reports | Recipients | Users | App mode | Monthly Cost |
+|----------|---------|-----------|-------|----------|-------------|
+| **Light** | 12, weekly | 20 | 5 | Scale-to-zero | **$10 - $25** |
+| **Medium** | 24, mixed schedule | 50 | 15 | Scale-to-zero | **$50 - $100** |
+| **Heavy** | 50, daily | 100+ | 50 | Scale-to-zero | **$200 - $340** |
+| **Heavy + always-on app** | 50, daily | 100+ | 50 | Always-on | **$560 - $700** |
 
 ### With Optimizations
 

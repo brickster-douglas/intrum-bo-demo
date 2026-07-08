@@ -126,9 +126,19 @@ Storage is negligible regardless of usage pattern. Even with 100K audit log entr
 | **Interactive views** | SQL ($0.91) | **$3** | **$31** | **$641** | User count × usage pattern × auto-stop setting |
 | **Recipient Manager** | Apps ($1.00) | **$0** | **$2** | **$5** | Scale-to-zero (default) — cost is negligible |
 | **Storage** | — | **$0** | **$0** | **$0** | Negligible |
-| **TOTAL** | | **~$10** | **~$84** | **~$338** | |
+| **TOTAL (scale-to-zero)** | | **~$10** | **~$84** | **~$338** | |
+| **TOTAL (app always-on)** | | **~$370** | **~$442** | **~$698** | Adds $360/month for 24/7 app uptime |
 
-Note: the "Max" column reflects realistic heavy production usage (50 reports daily, 50 active users). Theoretical maximum (e.g., always-on app 24/7, warehouse running continuously) would be higher but is not a realistic deployment pattern.
+### App Always-On vs Scale-to-Zero
+
+The Recipient Manager app defaults to scale-to-zero — when nobody is using it, it shuts down and costs $0. The first request after idle takes 10-30 seconds (cold start).
+
+If the app is kept always-on (scale-to-zero disabled), it runs 24/7 at 0.5 DBU/hr:
+```
+720 hr/month × 0.5 DBU/hr × $1.00/DBU = $360/month
+```
+
+This adds $360 to every scenario. For an admin tool used a few times per week, always-on is hard to justify. But if the app is used throughout the day by multiple admins or exposed as a self-service portal, the instant response time may be worth the cost.
 
 ### With optimizations applied
 
